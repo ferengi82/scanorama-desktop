@@ -160,19 +160,34 @@ class PiTransfer:
             raise TransferError(f"Ziel existiert bereits: {target}")
         target.mkdir(parents=True)
 
-        files = [f for f in self._sftp.listdir_attr(remote)
-                 if stat.S_ISREG(f.st_mode)]
-        total = sum(f.st_size or 0 for f in files)
+        # Rekursiv alle Dateien einsammeln (Scan-Ordner enthalten
+        # Unterordner, z.B. photos/ mit der Fotorunde).
+        files: list[tuple[str, str, int]] = []   # (remote, relativ, größe)
+
+        def walk(remote_dir: str, rel: str) -> None:
+            for e in self._sftp.listdir_attr(remote_dir):
+                r = f"{remote_dir}/{e.filename}"
+                p = f"{rel}/{e.filename}" if rel else e.filename
+                if stat.S_ISDIR(e.st_mode):
+                    walk(r, p)
+                elif stat.S_ISREG(e.st_mode):
+                    files.append((r, p, e.st_size or 0))
+
+        walk(remote, "")
+        total = sum(size for _, _, size in files)
         done = 0
-        log.info(f"Lade {scan_name} ({total / 1e6:.1f} MB) …")
+        log.info(f"Lade {scan_name} ({total / 1e6:.1f} MB, "
+                 f"{len(files)} Dateien) …")
         try:
-            for f in files:
+            for remote_file, rel, size in files:
+                local = target / rel
+                local.parent.mkdir(parents=True, exist_ok=True)
+
                 def cb(transferred, _total, base=done):
                     if progress:
                         progress(base + transferred, total)
-                self._sftp.get(f"{remote}/{f.filename}",
-                               str(target / f.filename), callback=cb)
-                done += f.st_size or 0
+                self._sftp.get(remote_file, str(local), callback=cb)
+                done += size
         except Exception as e:
             raise TransferError(f"Übertragung abgebrochen: {e}") from e
         log.info(f"Fertig: {target}")

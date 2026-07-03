@@ -46,6 +46,10 @@ def fake_device_scans(tmp_path, mock_scan_dir):
     device = tmp_path / "device_scans"
     device.mkdir()
     shutil.copytree(mock_scan_dir, device / mock_scan_dir.name)
+    # Unterordner mit Fotos (wie die Fotorunde des Scanners)
+    photos = device / mock_scan_dir.name / "photos"
+    photos.mkdir(exist_ok=True)
+    (photos / "photo_00_az000_usb0.jpg").write_bytes(b"\xff\xd8fake\xff\xd9")
     # ein unvollständiger Scan (abgebrochen) + eine lose Datei
     broken = device / "2026-01-01_scan_99_001"
     broken.mkdir()
@@ -80,6 +84,9 @@ def test_list_and_download(local_ssh_available, fake_device_scans,
         src = (mock_scan_dir / "lidar_raw.bin").read_bytes()
         dst = (target / "lidar_raw.bin").read_bytes()
         assert src == dst
+
+        # Unterordner (photos/) wurde rekursiv mitgeholt
+        assert (target / "photos" / "photo_00_az000_usb0.jpg").is_file()
 
         # doppelter Download → Fehler statt Überschreiben
         with pytest.raises(TransferError, match="existiert bereits"):
