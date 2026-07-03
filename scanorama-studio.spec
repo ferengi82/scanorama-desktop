@@ -4,11 +4,12 @@
 # open3d/laspy/pye57 bringen native DLLs und Datendateien mit —
 # collect_all sammelt sie vollständig ein.
 
-from PyInstaller.utils.hooks import collect_all
+from PyInstaller.utils.hooks import collect_all, collect_submodules
 
 datas = [("studio/ui/translations/*.qm", "studio/ui/translations")]
 binaries = []
-hiddenimports = []
+# Alle studio-Submodule explizit einsammeln (Imports teils in Funktionen)
+hiddenimports = collect_submodules("studio") + collect_submodules("scanorama")
 for pkg in ("open3d", "laspy", "pye57", "lazrs"):
     d, b, h = collect_all(pkg)
     datas += d

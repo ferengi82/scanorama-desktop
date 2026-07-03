@@ -54,7 +54,9 @@ jobs:
           python-version: "3.11"
       - name: Installieren
         run: |
-          pip install -e .
+          # WICHTIG: normal installieren (nicht -e) — editable Installs
+          # (PEP 660) sind für PyInstaller unsichtbar!
+          pip install .
           pip install pyinstaller
       - name: EXE bauen
         run: pyinstaller scanorama-studio.spec --noconfirm
