@@ -35,5 +35,8 @@ Repository = "https://github.com/ferengi82/scanorama-desktop"
 [tool.setuptools.packages.find]
 include = ["studio*"]
 
+[tool.setuptools.package-data]
+studio = ["ui/translations/*.qm"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]

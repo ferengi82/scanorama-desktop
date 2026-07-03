@@ -2,13 +2,13 @@
 
 ## v1 — Vollständige Auswertung (AKTUELL, Details in PLAN.md)
 
-- [ ] M1 Core-Pipeline: Rohdaten → gefilterte Punktwolke → PLY/E57/LAS (CLI)
-- [ ] M2 3D-Viewer (OpenGL, 4 Mio. Punkte flüssig)
-- [ ] M3 Projekt-Konzept + UI-Shell (PySide6, DE/EN)
-- [ ] M4 Registrierung/Fusion mehrerer Standpunkte
-- [ ] M5 Viewer-Werkzeuge: Messen, Clipping, Punkt-Info
-- [ ] M6 Scan-Transfer vom Pi (SSH)
-- [ ] M7 Windows-EXE-Release (CI) + Doku DE/EN
+- [x] M1 Core-Pipeline: Rohdaten → gefilterte Punktwolke → PLY/E57/LAS (CLI)
+- [x] M2 3D-Viewer (OpenGL; Performance-Abnahme auf Windows-GPU steht aus)
+- [x] M3 Projekt-Konzept + UI-Shell (PySide6, DE/EN)
+- [x] M4 Registrierung/Fusion mehrerer Standpunkte
+- [x] M5 Viewer-Werkzeuge: Messen, Clipping, Punkt-Info
+- [x] M6 Scan-Transfer vom Pi (SSH; Test gegen echten Pi steht aus — offline)
+- [x] M7 CI + PyInstaller-Spec + Doku DE/EN (erster EXE-Build/Test auf Windows steht aus)
 
 ## v2 — Vermessung
 

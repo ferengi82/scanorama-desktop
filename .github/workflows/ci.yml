@@ -1,0 +1,65 @@
+# CI: Tests auf Linux + Windows, Windows-EXE-Build bei Tags (v*)
+# oder manuell (workflow_dispatch).
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Linux-GUI-Abhängigkeiten
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb libegl1 libxcb-cursor0 \
+            libgl1 libglx-mesa0 libopengl0
+      - name: Installieren
+        run: pip install -e ".[dev]"
+      - name: Tests (Linux, unter Xvfb)
+        if: runner.os == 'Linux'
+        run: xvfb-run -a python -m pytest -q
+      - name: Tests (Windows)
+        if: runner.os == 'Windows'
+        run: python -m pytest -q
+
+  build-exe:
+    needs: test
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Installieren
+        run: |
+          pip install -e .
+          pip install pyinstaller
+      - name: EXE bauen
+        run: pyinstaller scanorama-studio.spec --noconfirm
+      - name: Paket zippen
+        run: Compress-Archive -Path dist/ScanoramaStudio -DestinationPath ScanoramaStudio-windows.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ScanoramaStudio-windows
+          path: ScanoramaStudio-windows.zip
+      - name: Release anhängen (nur Tags)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ScanoramaStudio-windows.zip
