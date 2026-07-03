@@ -14,10 +14,11 @@ from PySide6.QtWidgets import (QComboBox, QDockWidget, QFileDialog,
                                QSlider, QToolBar)
 
 from .. import APP_NAME, __version__
-from ..core import export
+from ..core import export, fusion
 from ..core.pipeline import ProcessingResult, process_scan
 from ..core.project import Project, ProjectError
 from ..core.rawscan import find_scan_folders
+from ..core.registration import RegistrationParams, register_stations
 from . import i18n
 from .panels import LogPanel, ParamsPanel, ProjectPanel
 from .viewer import PointCloudGLWidget
@@ -35,6 +36,7 @@ class MainWindow(QMainWindow):
 
         self.project: Project | None = None
         self._results: dict[str, ProcessingResult] = {}   # Cache pro Standpunkt
+        self._fused = None                                # fusionierte Gesamtwolke
         self.workers = WorkerManager()
 
         self.viewer = PointCloudGLWidget(self)
@@ -127,6 +129,28 @@ class MainWindow(QMainWindow):
         self.act_export.triggered.connect(self._export_current)
         m_project.addAction(self.act_export)
 
+        m_reg = self.menuBar().addMenu(self.tr("&Registrierung"))
+        self.act_register = QAction(
+            self.tr("Standpunkte &registrieren && fusionieren"), self)
+        self.act_register.setShortcut("Ctrl+R")
+        self.act_register.triggered.connect(self._register_and_fuse)
+        m_reg.addAction(self.act_register)
+
+        self.act_show_fused = QAction(self.tr("&Gesamtwolke anzeigen"), self)
+        self.act_show_fused.triggered.connect(self._show_fused)
+        m_reg.addAction(self.act_show_fused)
+
+        m_reg.addSeparator()
+        self.act_export_fused = QAction(
+            self.tr("Gesamtwolke e&xportieren…"), self)
+        self.act_export_fused.triggered.connect(self._export_fused)
+        m_reg.addAction(self.act_export_fused)
+
+        self.act_export_e57 = QAction(
+            self.tr("Alle Standpunkte als &E57 mit Posen (Metashape)…"), self)
+        self.act_export_e57.triggered.connect(self._export_e57_stations)
+        m_reg.addAction(self.act_export_e57)
+
         m_project.addSeparator()
         act = QAction(self.tr("&Beenden"), self)
         act.setShortcut(QKeySequence.StandardKey.Quit)
@@ -155,6 +179,14 @@ class MainWindow(QMainWindow):
         self.act_export.setEnabled(has_project and bool(self._results))
         self.params_panel.setEnabled(has_project)
         self.project_panel.setEnabled(has_project)
+        n_enabled = (sum(s.enabled for s in self.project.stations)
+                     if has_project else 0)
+        self.act_register.setEnabled(n_enabled >= 2)
+        has_fused = self._fused is not None
+        self.act_show_fused.setEnabled(has_fused)
+        self.act_export_fused.setEnabled(has_fused)
+        self.act_export_e57.setEnabled(
+            has_project and any(s.pose is not None for s in self.project.stations))
 
     # ------------------------------------------------------------------
     # Projekt-Verwaltung
@@ -199,6 +231,7 @@ class MainWindow(QMainWindow):
 
     def _project_loaded(self) -> None:
         self._results.clear()
+        self._fused = None
         self.viewer.set_cloud(None)
         self.params_panel.set_params(self.project.params)
         self.project_panel.set_project(self.project)
@@ -307,6 +340,117 @@ class MainWindow(QMainWindow):
         for s in self.project.stations:
             self._process_station(s.folder,
                                   show_after=(s.folder == current))
+
+    # ------------------------------------------------------------------
+    # Registrierung & Fusion
+    # ------------------------------------------------------------------
+    def _register_and_fuse(self) -> None:
+        if self.project is None:
+            return
+        enabled = [s for s in self.project.stations if s.enabled]
+        if len(enabled) < 2:
+            QMessageBox.information(
+                self, APP_NAME,
+                self.tr("Mindestens zwei aktive Standpunkte nötig."))
+            return
+
+        project = self.project
+        params = project.params
+        cached = dict(self._results)
+        folders = [s.folder for s in enabled]
+        voxel = project.fusion_voxel_m
+        self.statusBar().showMessage(
+            self.tr("Registriere %d Standpunkte …") % len(enabled))
+
+        def job():
+            results = {}
+            for s in enabled:
+                if s.folder in cached:
+                    results[s.folder] = cached[s.folder]
+                else:
+                    results[s.folder] = process_scan(
+                        project.station_path(s), params)
+            clouds = [results[f].cloud for f in folders]
+            reg = register_stations(clouds, RegistrationParams())
+            fused = fusion.fuse(clouds, reg.poses, voxel_size_m=voxel)
+            return results, reg, fused
+
+        def on_result(payload):
+            results, reg, fused = payload
+            self._results.update(results)
+            for s, T in zip(enabled, reg.poses):
+                s.set_pose(T)
+            self.project.save()
+            self._fused = fused
+            for folder in folders:
+                self.project_panel.set_status(
+                    folder, self.tr("%d Punkte") % len(results[folder].cloud))
+            self._show_fused()
+            weakest = min(reg.pairs, key=lambda p: p.fitness) if reg.pairs else None
+            note = ""
+            if weakest is not None:
+                note = self.tr("\nSchwächstes Paar: %d→%d (%s, Fitness %.2f)") % (
+                    weakest.source, weakest.target, weakest.rating,
+                    weakest.fitness)
+            QMessageBox.information(
+                self, APP_NAME,
+                self.tr("Registrierung abgeschlossen — Gesamtwolke: "
+                        "%d Punkte.") % len(fused) + note)
+            self._update_enabled()
+
+        self.workers.start(job, on_result=on_result,
+                           on_error=lambda m: QMessageBox.critical(
+                               self, APP_NAME, m))
+
+    def _show_fused(self) -> None:
+        if self._fused is None:
+            return
+        self.viewer.set_cloud(self._fused)
+        self.color_box.setCurrentIndex(2)   # Standpunkt-Farben
+        self.viewer.set_color_mode("station")
+        self.statusBar().showMessage(
+            self.tr("Gesamtwolke: %d Punkte aus %d Standpunkten") % (
+                len(self._fused), self._fused.meta.get("stations", 0)))
+
+    def _export_fused(self) -> None:
+        if self._fused is None or self.project is None:
+            return
+        formats, ok = QInputDialog.getItem(
+            self, self.tr("Gesamtwolke exportieren"),
+            self.tr("Format:"), ["e57", "ply", "las", "laz"], 0, False)
+        if not ok:
+            return
+        cloud = self._fused
+        out = self.project.output_dir / "gesamtwolke"
+
+        self.workers.start(
+            export.export_cloud, cloud, out, [formats],
+            on_result=lambda written: self.statusBar().showMessage(
+                self.tr("Exportiert: %s") % ", ".join(str(w) for w in written)),
+            on_error=lambda m: QMessageBox.critical(self, APP_NAME, m))
+
+    def _export_e57_stations(self) -> None:
+        """Alle registrierten Standpunkte als E57-Stationen mit Posen —
+        Metashape importiert sie fertig ausgerichtet."""
+        if self.project is None:
+            return
+        stations = [s for s in self.project.stations
+                    if s.pose is not None and s.folder in self._results]
+        if len(stations) < 1:
+            QMessageBox.information(
+                self, APP_NAME,
+                self.tr("Erst registrieren — es gibt noch keine Posen."))
+            return
+        clouds = [self._results[s.folder].cloud for s in stations]
+        poses = [s.pose_matrix() for s in stations]
+        names = [s.folder for s in stations]
+        target = self.project.output_dir / "standpunkte_posen.e57"
+
+        self.workers.start(
+            export.save_e57, clouds, target, poses, names,
+            on_result=lambda _: self.statusBar().showMessage(
+                self.tr("E57 mit Posen exportiert: %s") % target),
+            on_error=lambda m: QMessageBox.critical(self, APP_NAME, m))
 
     # ------------------------------------------------------------------
     # Export
