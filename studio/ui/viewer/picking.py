@@ -11,7 +11,8 @@ import numpy as np
 
 
 def pick_point(xyz: np.ndarray, origin: np.ndarray, direction: np.ndarray,
-               max_angle_deg: float = 0.6) -> int | None:
+               max_angle_deg: float = 0.6,
+               clip_box: tuple[np.ndarray, np.ndarray] | None = None) -> int | None:
     """Findet den Punkt, der dem Strahl am nächsten liegt.
 
     Ein Punkt gilt als getroffen, wenn er innerhalb eines Kegels von
@@ -24,12 +25,24 @@ def pick_point(xyz: np.ndarray, origin: np.ndarray, direction: np.ndarray,
         xyz: (N,3) Punktkoordinaten
         origin: (3,) Strahl-Ursprung (Kameraposition)
         direction: (3,) normierte Strahlrichtung
+        clip_box: optional (min3, max3) — nur sichtbare Punkte innerhalb
+            der Clipping-Box sind wählbar
 
     Returns:
-        Index des getroffenen Punkts oder None
+        Index des getroffenen Punkts (bezogen auf das volle Array) oder None
     """
     if len(xyz) == 0:
         return None
+
+    if clip_box is not None:
+        lo, hi = clip_box
+        visible = np.all((xyz >= lo) & (xyz <= hi), axis=1)
+        if not visible.any():
+            return None
+        idx_map = np.flatnonzero(visible)
+        sub = pick_point(xyz[visible], origin, direction, max_angle_deg)
+        return None if sub is None else int(idx_map[sub])
+
     rel = xyz.astype(np.float64) - origin
     t = rel @ direction                     # Projektion auf den Strahl
     ahead = t > 1e-6                        # nur Punkte vor der Kamera

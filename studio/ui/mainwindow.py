@@ -21,6 +21,7 @@ from ..core.rawscan import find_scan_folders
 from ..core.registration import RegistrationParams, register_stations
 from . import i18n
 from .panels import LogPanel, ParamsPanel, ProjectPanel
+from .tools import ToolsPanel
 from .viewer import PointCloudGLWidget
 from .workers import WorkerManager
 
@@ -63,6 +64,12 @@ class MainWindow(QMainWindow):
         dock = QDockWidget(self.tr("Verarbeitung"), self)
         dock.setObjectName("dock_params")
         dock.setWidget(self.params_panel)
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
+
+        self.tools_panel = ToolsPanel(self.viewer, self)
+        dock = QDockWidget(self.tr("Werkzeuge"), self)
+        dock.setObjectName("dock_tools")
+        dock.setWidget(self.tools_panel)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
         self.log_panel = LogPanel(self)

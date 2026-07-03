@@ -31,6 +31,7 @@ from .picking import pick_point
 log = logging.getLogger(__name__)
 
 GL_POINTS = 0x0000
+GL_LINES = 0x0001
 GL_DEPTH_TEST = 0x0B71
 GL_PROGRAM_POINT_SIZE = 0x8642
 GL_COLOR_BUFFER_BIT = 0x4000
@@ -45,24 +46,40 @@ layout(location = 1) in vec3 col;
 uniform mat4 mvp;
 uniform float point_size;
 out vec3 v_col;
+out vec3 v_world;
 void main() {
     gl_Position = mvp * vec4(pos, 1.0);
     gl_PointSize = point_size;
     v_col = col;
+    v_world = pos;
 }
 """
 
 _FRAGMENT_SHADER = """
 #version 330 core
 in vec3 v_col;
+in vec3 v_world;
+uniform int clip_enabled;
+uniform vec3 clip_min;
+uniform vec3 clip_max;
+uniform int round_points;
+uniform int use_uniform_color;   // 1 = Overlay (Marker/Messlinie)
+uniform vec3 uniform_color;
 out vec4 frag;
 void main() {
-    // runde Punkte: Ecken des Point-Sprites verwerfen
-    vec2 d = gl_PointCoord - vec2(0.5);
-    if (dot(d, d) > 0.25) discard;
-    frag = vec4(v_col, 1.0);
+    if (clip_enabled == 1 &&
+        (any(lessThan(v_world, clip_min)) ||
+         any(greaterThan(v_world, clip_max)))) discard;
+    if (round_points == 1) {
+        // runde Punkte: Ecken des Point-Sprites verwerfen
+        vec2 d = gl_PointCoord - vec2(0.5);
+        if (dot(d, d) > 0.25) discard;
+    }
+    frag = vec4(use_uniform_color == 1 ? uniform_color : v_col, 1.0);
 }
 """
+
+TOOLS = ("orbit", "measure", "info")
 
 
 class PointCloudGLWidget(QOpenGLWidget):
@@ -83,7 +100,13 @@ class PointCloudGLWidget(QOpenGLWidget):
         self.lod_budget = lod_budget
         self.point_size = 2.0
         self.color_mode = "intensity"
-        self.pick_mode = False
+        self.tool = "orbit"                          # orbit | measure | info
+        self.clip_box: tuple[np.ndarray, np.ndarray] | None = None
+        self._overlay: np.ndarray | None = None      # (M,3) Marker-Punkte
+        self._overlay_lines = False
+        self._vbo_overlay: QOpenGLBuffer | None = None
+        self._vao_overlay: QOpenGLVertexArrayObject | None = None
+        self._dirty_overlay = False
 
         self._cloud: PointCloud | None = None
         self._perm: np.ndarray | None = None        # Permutation für LOD
@@ -151,7 +174,36 @@ class PointCloudGLWidget(QOpenGLWidget):
             return None
         origin, direction = self.camera.screen_ray(
             x, y, self.width(), self.height())
-        return pick_point(self._cloud.xyz, origin, direction)
+        return pick_point(self._cloud.xyz, origin, direction,
+                          clip_box=self.clip_box)
+
+    def set_tool(self, tool: str) -> None:
+        if tool not in TOOLS:
+            raise ValueError(f"Unbekanntes Werkzeug: {tool}")
+        self.tool = tool
+
+    def set_clip_box(self, lo, hi) -> None:
+        """Axis-aligned Clipping-Box setzen (None/None = deaktivieren)."""
+        if lo is None or hi is None:
+            self.clip_box = None
+        else:
+            self.clip_box = (np.asarray(lo, dtype=np.float64),
+                             np.asarray(hi, dtype=np.float64))
+        self.update()
+
+    def set_overlay(self, points: list[np.ndarray] | None,
+                    lines: bool = True) -> None:
+        """Marker-Punkte (z.B. Messpunkte) über der Wolke anzeigen.
+
+        Bei ``lines=True`` werden aufeinanderfolgende Paare verbunden.
+        """
+        if not points:
+            self._overlay = None
+        else:
+            self._overlay = np.asarray(points, dtype=np.float32).reshape(-1, 3)
+        self._overlay_lines = lines
+        self._dirty_overlay = True
+        self.update()
 
     @property
     def cloud(self) -> PointCloud | None:
@@ -182,9 +234,14 @@ class PointCloudGLWidget(QOpenGLWidget):
         self._vbo_pos.create()
         self._vbo_col = QOpenGLBuffer(QOpenGLBuffer.Type.VertexBuffer)
         self._vbo_col.create()
+        self._vao_overlay = QOpenGLVertexArrayObject(self)
+        self._vao_overlay.create()
+        self._vbo_overlay = QOpenGLBuffer(QOpenGLBuffer.Type.VertexBuffer)
+        self._vbo_overlay.create()
         self._gl_ready = True
         self._dirty_positions = True
         self._dirty_colors = True
+        self._dirty_overlay = True
 
     def _upload(self) -> None:
         f = self.context().functions()
@@ -207,6 +264,20 @@ class PointCloudGLWidget(QOpenGLWidget):
         self._dirty_positions = False
         self._dirty_colors = False
 
+    def _upload_overlay(self) -> None:
+        f = self.context().functions()
+        if self._overlay is not None:
+            self._vao_overlay.bind()
+            self._vbo_overlay.bind()
+            data = np.ascontiguousarray(self._overlay).tobytes()
+            self._vbo_overlay.allocate(data, len(data))
+            f.glEnableVertexAttribArray(0)
+            f.glVertexAttribPointer(0, 3, GL_FLOAT, 0, 0, VoidPtr(0))
+            f.glDisableVertexAttribArray(1)   # Farbe kommt als Konstante
+            self._vbo_overlay.release()
+            self._vao_overlay.release()
+        self._dirty_overlay = False
+
     def paintGL(self) -> None:
         f = self.context().functions()
         f.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -215,23 +286,57 @@ class PointCloudGLWidget(QOpenGLWidget):
         if self._dirty_positions or self._dirty_colors:
             self._upload()
 
+        if self._dirty_overlay:
+            self._upload_overlay()
+
         n = len(self._positions)
         count = min(n, self.lod_budget) if self._interacting else n
 
         aspect = self.width() / max(self.height(), 1)
         mvp = self.camera.mvp(aspect).astype(np.float32)
 
-        self._program.bind()
-        self._program.setUniformValue(
-            self._program.uniformLocation("mvp"),
-            QMatrix4x4(*mvp.flatten().tolist()))
-        self._program.setUniformValue(
-            self._program.uniformLocation("point_size"),
-            float(self.point_size))
+        p = self._program
+        p.bind()
+        p.setUniformValue(p.uniformLocation("mvp"),
+                          QMatrix4x4(*mvp.flatten().tolist()))
+        p.setUniformValue(p.uniformLocation("point_size"),
+                          float(self.point_size))
+        p.setUniformValue1i(p.uniformLocation("round_points"), 1)
+        p.setUniformValue1i(p.uniformLocation("use_uniform_color"), 0)
+
+        if self.clip_box is not None:
+            lo, hi = self.clip_box
+            p.setUniformValue1i(p.uniformLocation("clip_enabled"), 1)
+            p.setUniformValue(p.uniformLocation("clip_min"),
+                              float(lo[0]), float(lo[1]), float(lo[2]))
+            p.setUniformValue(p.uniformLocation("clip_max"),
+                              float(hi[0]), float(hi[1]), float(hi[2]))
+        else:
+            p.setUniformValue1i(p.uniformLocation("clip_enabled"), 0)
+
         self._vao.bind()
         f.glDrawArrays(GL_POINTS, 0, count)
         self._vao.release()
-        self._program.release()
+
+        # --- Overlay (Messpunkte/-linien) — immer sichtbar, ungeclippt ---
+        if self._overlay is not None and len(self._overlay):
+            f.glDisable(GL_DEPTH_TEST)
+            p.setUniformValue1i(p.uniformLocation("clip_enabled"), 0)
+            p.setUniformValue1i(p.uniformLocation("use_uniform_color"), 1)
+            p.setUniformValue(p.uniformLocation("uniform_color"),
+                              1.0, 0.62, 0.05)   # orange
+            p.setUniformValue(p.uniformLocation("point_size"),
+                              float(self.point_size) + 8.0)
+            self._vao_overlay.bind()
+            m = len(self._overlay)
+            f.glDrawArrays(GL_POINTS, 0, m)
+            if self._overlay_lines and m >= 2:
+                p.setUniformValue1i(p.uniformLocation("round_points"), 0)
+                f.glDrawArrays(GL_LINES, 0, m - (m % 2))
+            self._vao_overlay.release()
+            f.glEnable(GL_DEPTH_TEST)
+
+        p.release()
 
     # ------------------------------------------------------------------
     # Interaktion
@@ -246,7 +351,7 @@ class PointCloudGLWidget(QOpenGLWidget):
 
     def mousePressEvent(self, ev) -> None:
         self._last_mouse = ev.position()
-        if self.pick_mode and ev.button() == Qt.MouseButton.LeftButton:
+        if self.tool != "orbit" and ev.button() == Qt.MouseButton.LeftButton:
             idx = self.pick_at(ev.position().x(), ev.position().y())
             if idx is not None:
                 self.pointPicked.emit(idx, self._cloud.xyz[idx].copy())
@@ -258,7 +363,7 @@ class PointCloudGLWidget(QOpenGLWidget):
         delta = ev.position() - self._last_mouse
         self._last_mouse = ev.position()
         buttons = ev.buttons()
-        if buttons & Qt.MouseButton.LeftButton and not self.pick_mode:
+        if buttons & Qt.MouseButton.LeftButton and self.tool == "orbit":
             self.camera.rotate(delta.x(), delta.y())
         elif buttons & (Qt.MouseButton.RightButton | Qt.MouseButton.MiddleButton):
             self.camera.pan(delta.x(), delta.y(), self.height())
