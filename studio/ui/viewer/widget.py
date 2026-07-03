@@ -39,6 +39,19 @@ GL_DEPTH_BUFFER_BIT = 0x0100
 GL_FLOAT = 0x1406
 GL_UNSIGNED_BYTE = 0x1401
 
+def set_default_gl_format() -> None:
+    """Muss VOR der QApplication-Erstellung laufen (app.py macht das).
+
+    Windows: außerdem AA_UseDesktopOpenGL setzen, sonst kann Qt auf
+    ANGLE/Direct3D ausweichen — dort kompilieren GL-3.3-Shader nicht.
+    """
+    fmt = QSurfaceFormat()
+    fmt.setVersion(3, 3)
+    fmt.setProfile(QSurfaceFormat.OpenGLContextProfile.CoreProfile)
+    fmt.setDepthBufferSize(24)
+    QSurfaceFormat.setDefaultFormat(fmt)
+
+
 _VERTEX_SHADER = """
 #version 330 core
 layout(location = 0) in vec3 pos;
@@ -89,11 +102,7 @@ class PointCloudGLWidget(QOpenGLWidget):
     pointPicked = Signal(int, object)
 
     def __init__(self, parent=None, lod_budget: int = 1_500_000):
-        fmt = QSurfaceFormat()
-        fmt.setVersion(3, 3)
-        fmt.setProfile(QSurfaceFormat.OpenGLContextProfile.CoreProfile)
-        fmt.setSamples(0)
-        QSurfaceFormat.setDefaultFormat(fmt)
+        set_default_gl_format()   # falls app.py es nicht schon getan hat
         super().__init__(parent)
 
         self.camera = OrbitCamera()
@@ -214,6 +223,15 @@ class PointCloudGLWidget(QOpenGLWidget):
     # ------------------------------------------------------------------
     def initializeGL(self) -> None:
         f = self.context().functions()
+
+        # Diagnose ins Protokoll — bei Rendering-Problemen die erste Anlaufstelle
+        GL_VENDOR, GL_RENDERER, GL_VERSION = 0x1F00, 0x1F01, 0x1F02
+        ctx_fmt = self.context().format()
+        log.info(f"OpenGL: {f.glGetString(GL_VERSION)} | "
+                 f"{f.glGetString(GL_RENDERER)} ({f.glGetString(GL_VENDOR)}) | "
+                 f"Kontext {ctx_fmt.majorVersion()}.{ctx_fmt.minorVersion()} "
+                 f"{'GLES' if ctx_fmt.renderableType() == ctx_fmt.RenderableType.OpenGLES else 'Desktop'}")
+
         f.glClearColor(0.13, 0.14, 0.15, 1.0)
         f.glEnable(GL_DEPTH_TEST)
         f.glEnable(GL_PROGRAM_POINT_SIZE)
@@ -225,7 +243,20 @@ class PointCloudGLWidget(QOpenGLWidget):
                   QOpenGLShader.ShaderTypeBit.Fragment, _FRAGMENT_SHADER)
               and self._program.link())
         if not ok:
-            log.error(f"Shader-Fehler: {self._program.log()}")
+            # Fallback für GLES-Kontexte (z.B. ANGLE unter Windows)
+            log.warning(f"GL-3.3-Shader nicht kompilierbar — versuche "
+                        f"GLES-Variante. Details: {self._program.log()}")
+            self._program = QOpenGLShaderProgram(self)
+            es = lambda src: src.replace("#version 330 core",
+                                         "#version 300 es\nprecision highp float;")
+            ok = (self._program.addShaderFromSourceCode(
+                      QOpenGLShader.ShaderTypeBit.Vertex, es(_VERTEX_SHADER))
+                  and self._program.addShaderFromSourceCode(
+                      QOpenGLShader.ShaderTypeBit.Fragment, es(_FRAGMENT_SHADER))
+                  and self._program.link())
+        if not ok:
+            log.error(f"Shader-Fehler (Viewer bleibt leer!): "
+                      f"{self._program.log()}")
             return
 
         self._vao = QOpenGLVertexArrayObject(self)
@@ -279,6 +310,15 @@ class PointCloudGLWidget(QOpenGLWidget):
         self._dirty_overlay = False
 
     def paintGL(self) -> None:
+        try:
+            self._paint()
+        except Exception:
+            # Windowed-EXE hat keine Konsole — Fehler sichtbar machen
+            # und nicht bei jedem Frame wiederholen.
+            log.exception("Viewer-Renderfehler (Anzeige deaktiviert)")
+            self._gl_ready = False
+
+    def _paint(self) -> None:
         f = self.context().functions()
         f.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         if not self._gl_ready or self._positions is None:

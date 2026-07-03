@@ -33,6 +33,7 @@ class RemoteConfig:
     user: str = "pi"
     port: int = 22
     key_path: str = ""            # leer = Standard-Keys/Agent
+    password: str = ""            # Alternative zu Schlüsseln (nicht persistiert!)
     scans_dir: str = "scans"      # relativ zum Home des Users
 
 
@@ -70,13 +71,18 @@ class PiTransfer:
                 port=self.config.port,
                 username=self.config.user,
                 key_filename=self.config.key_path or None,
+                password=self.config.password or None,
                 timeout=10,
                 allow_agent=True,
                 look_for_keys=True,
             )
         except Exception as e:
+            hint = ""
+            if "No authentication methods" in str(e):
+                hint = (" — kein SSH-Schlüssel gefunden: bitte Passwort "
+                        "eingeben oder Schlüsseldatei angeben.")
             raise TransferError(f"Verbindung zu {self.config.user}@"
-                                f"{self.config.host} fehlgeschlagen: {e}") from e
+                                f"{self.config.host} fehlgeschlagen: {e}{hint}") from e
         self._client = client
         self._sftp = client.open_sftp()
         log.info(f"Verbunden: {self.config.user}@{self.config.host}")

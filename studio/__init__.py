@@ -6,5 +6,5 @@ Architektur (siehe docs/dev/DECISIONS.md):
   - ``studio.cli``   : Headless-Batchverarbeitung
 """
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 APP_NAME = "Scanorama Studio"

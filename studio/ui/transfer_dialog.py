@@ -35,11 +35,16 @@ class TransferDialog(QDialog):
         self.port.setValue(int(self.settings.value("pi/port", 22)))
         self.key = QLineEdit(self.settings.value("pi/key", ""))
         self.key.setPlaceholderText(self.tr("leer = Standard-SSH-Schlüssel"))
+        self.password = QLineEdit()
+        self.password.setEchoMode(QLineEdit.EchoMode.Password)
+        self.password.setPlaceholderText(
+            self.tr("alternativ zum Schlüssel — wird nicht gespeichert"))
         self.scans_dir = QLineEdit(self.settings.value("pi/scans_dir", "scans"))
         form.addRow(self.tr("Host/IP"), self.host)
         form.addRow(self.tr("Benutzer"), self.user)
         form.addRow(self.tr("Port"), self.port)
         form.addRow(self.tr("Schlüsseldatei"), self.key)
+        form.addRow(self.tr("Passwort"), self.password)
         form.addRow(self.tr("Scan-Ordner"), self.scans_dir)
 
         self.btn_connect = QPushButton(self.tr("Verbinden && auflisten"))
@@ -89,6 +94,7 @@ class TransferDialog(QDialog):
             user=self.user.text().strip(),
             port=self.port.value(),
             key_path=self.key.text().strip(),
+            password=self.password.text(),   # bewusst NICHT in QSettings
             scans_dir=self.scans_dir.text().strip() or "scans",
         )
 

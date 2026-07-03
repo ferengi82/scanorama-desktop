@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<TS version="2.1">
+<TS version="2.1" language="en_US" sourcelanguage="de_DE">
 <context>
     <name>MainWindow</name>
     <message>
@@ -440,67 +440,77 @@ station: %d</translation>
         <translation>empty = default SSH keys</translation>
     </message>
     <message>
-        <location filename="../transfer_dialog.py" line="39" />
+        <location filename="../transfer_dialog.py" line="41" />
+        <source>alternativ zum Schlüssel — wird nicht gespeichert</source>
+        <translation>alternative to the key — not stored</translation>
+    </message>
+    <message>
+        <location filename="../transfer_dialog.py" line="43" />
         <source>Host/IP</source>
         <translation>Host/IP</translation>
     </message>
     <message>
-        <location filename="../transfer_dialog.py" line="40" />
+        <location filename="../transfer_dialog.py" line="44" />
         <source>Benutzer</source>
         <translation>User</translation>
     </message>
     <message>
-        <location filename="../transfer_dialog.py" line="41" />
+        <location filename="../transfer_dialog.py" line="45" />
         <source>Port</source>
         <translation>Port</translation>
     </message>
     <message>
-        <location filename="../transfer_dialog.py" line="42" />
+        <location filename="../transfer_dialog.py" line="46" />
         <source>Schlüsseldatei</source>
         <translation>Key file</translation>
     </message>
     <message>
-        <location filename="../transfer_dialog.py" line="43" />
+        <location filename="../transfer_dialog.py" line="47" />
+        <source>Passwort</source>
+        <translation>Password</translation>
+    </message>
+    <message>
+        <location filename="../transfer_dialog.py" line="48" />
         <source>Scan-Ordner</source>
         <translation>Scans folder</translation>
     </message>
     <message>
-        <location filename="../transfer_dialog.py" line="45" />
+        <location filename="../transfer_dialog.py" line="50" />
         <source>Verbinden &amp;&amp; auflisten</source>
         <translation>Connect &amp;&amp; list</translation>
     </message>
     <message>
-        <location filename="../transfer_dialog.py" line="50" />
+        <location filename="../transfer_dialog.py" line="55" />
         <source>Scan</source>
         <translation>Scan</translation>
     </message>
     <message>
-        <location filename="../transfer_dialog.py" line="50" />
+        <location filename="../transfer_dialog.py" line="55" />
         <source>Größe</source>
         <translation>Size</translation>
     </message>
     <message>
-        <location filename="../transfer_dialog.py" line="50" />
+        <location filename="../transfer_dialog.py" line="55" />
         <source>Datum</source>
         <translation>Date</translation>
     </message>
     <message>
-        <location filename="../transfer_dialog.py" line="51" />
+        <location filename="../transfer_dialog.py" line="56" />
         <source>Vollständig</source>
         <translation>Complete</translation>
     </message>
     <message>
-        <location filename="../transfer_dialog.py" line="58" />
+        <location filename="../transfer_dialog.py" line="63" />
         <source>Ausgewählte holen</source>
         <translation>Fetch selected</translation>
     </message>
     <message>
-        <location filename="../transfer_dialog.py" line="110" />
+        <location filename="../transfer_dialog.py" line="116" />
         <source>ja</source>
         <translation>yes</translation>
     </message>
     <message>
-        <location filename="../transfer_dialog.py" line="110" />
+        <location filename="../transfer_dialog.py" line="116" />
         <source>NEIN</source>
         <translation>NO</translation>
     </message>
