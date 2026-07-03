@@ -2,6 +2,25 @@
 
 > Wird laufend gepflegt. Neuester Eintrag oben.
 
+## 2026-07-03 (spät) — v1 KOMPLETT: CI grün, EXE gebaut, Pi-Tests bestanden
+
+- **CI grün auf Ubuntu + Windows**, Windows-EXE gebaut (Artefakt
+  `ScanoramaStudio-windows`, ~134 MB). Für ein Release: Tag `v0.1.0`
+  pushen → EXE hängt automatisch am GitHub-Release.
+  (CI-Fixes: Mesa-DRI + volle Qt6-xcb-Bibliotheken auf dem Runner.)
+- **Pi wieder online**: Scanner als `~/scanorama` deployt (21 Tests
+  grün, Selftest ok), altes `~/pilidar` gelöscht.
+- **Transfer gegen echtes Gerät**: Liste + Download 37.2 MB in 3.9 s
+  (9.6 MB/s) mit Fortschritts-Callbacks.
+- **Voller 180°-Scan durch die Studio-Pipeline**: 3.93 Mio → 2.72 Mio
+  Punkte in 15 s, **Bodenfit erfolgreich** (Tischplatte korrekt
+  verworfen). Befund: Bodenebene um **7.4° geneigt** → deutet auf
+  el_offset der LiDAR-Montage hin! Mit `--el-offset` kompensierbar;
+  Kalibrier-Assistent steht auf der v2-Roadmap.
+
+**Noch offen:** EXE auf dem Windows-PC des Users starten/testen,
+Viewer-Performance auf echter GPU, el_offset bestimmen.
+
 ## 2026-07-03 (abends) — v1 implementiert (M1–M7)
 
 Alle Meilensteine an einem Tag umgesetzt, ~70 Tests grün. Highlights:
