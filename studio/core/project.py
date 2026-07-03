@@ -169,6 +169,19 @@ class Project:
         self.save()
         return station
 
+    def add_existing(self, folder_name: str) -> Station:
+        """Registriert einen Ordner, der bereits unter scans/ liegt
+        (z.B. direkt dorthin heruntergeladen — kein Kopieren nötig)."""
+        target = self.scans_dir / folder_name
+        if not is_scan_folder(target):
+            raise ProjectError(f"Kein Scanorama-Scan: {target}")
+        if any(s.folder == folder_name for s in self.stations):
+            raise ProjectError(f"Standpunkt existiert bereits: {folder_name}")
+        station = Station(folder=folder_name)
+        self.stations.append(station)
+        self.save()
+        return station
+
     def remove_station(self, folder: str, delete_files: bool = False) -> None:
         station = self.get_station(folder)
         self.stations.remove(station)

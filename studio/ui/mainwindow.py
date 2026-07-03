@@ -131,6 +131,11 @@ class MainWindow(QMainWindow):
         self.act_import.triggered.connect(self._import_scans)
         m_project.addAction(self.act_import)
 
+        self.act_fetch = QAction(self.tr("Scans vom &Gerät holen…"), self)
+        self.act_fetch.setShortcut("Ctrl+G")
+        self.act_fetch.triggered.connect(self._fetch_from_pi)
+        m_project.addAction(self.act_fetch)
+
         self.act_export = QAction(self.tr("Standpunkt &exportieren…"), self)
         self.act_export.setShortcut("Ctrl+E")
         self.act_export.triggered.connect(self._export_current)
@@ -186,6 +191,7 @@ class MainWindow(QMainWindow):
         self.act_export.setEnabled(has_project and bool(self._results))
         self.params_panel.setEnabled(has_project)
         self.project_panel.setEnabled(has_project)
+        self.act_fetch.setEnabled(has_project)
         n_enabled = (sum(s.enabled for s in self.project.stations)
                      if has_project else 0)
         self.act_register.setEnabled(n_enabled >= 2)
@@ -273,6 +279,27 @@ class MainWindow(QMainWindow):
         self.project_panel.set_project(self.project)
         self.statusBar().showMessage(
             self.tr("%d Scan(s) importiert") % imported)
+        self._update_enabled()
+
+    def _fetch_from_pi(self) -> None:
+        """Scans per SSH direkt in den Projektordner holen."""
+        if self.project is None:
+            return
+        from .transfer_dialog import TransferDialog
+        dialog = TransferDialog(self.workers, self)
+        dialog.target_dir = self.project.scans_dir
+        dialog.exec()
+        added = 0
+        for path in dialog.downloaded:
+            try:
+                self.project.add_existing(path.name)
+                added += 1
+            except ProjectError as e:
+                log.warning(str(e))
+        if added:
+            self.project_panel.set_project(self.project)
+            self.statusBar().showMessage(
+                self.tr("%d Scan(s) vom Gerät geholt") % added)
         self._update_enabled()
 
     def _remove_station(self, folder: str) -> None:
