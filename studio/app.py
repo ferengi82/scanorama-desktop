@@ -16,10 +16,12 @@ def main() -> int:
     from PySide6.QtWidgets import QApplication
 
     from . import APP_NAME
+    from .ui import i18n
     from .ui.mainwindow import MainWindow
 
     app = QApplication(sys.argv)
     app.setApplicationName(APP_NAME)
+    i18n.install_translator(app)
     win = MainWindow()
     win.show()
     return app.exec()
