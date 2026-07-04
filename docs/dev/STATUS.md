@@ -1,5 +1,23 @@
 # Arbeitsstand Scanorama Studio
 
+## 2026-07-04 — Windows-Debugging (v0.1.1–v0.1.3)
+
+- v0.1.1: EXE-Startfix (editable Install für PyInstaller unsichtbar →
+  pip install . + collect_submodules), Passwort-Feld im Pi-Dialog ✓
+  (Transfer vom Windows-PC funktioniert), Desktop-GL erzwungen
+- v0.1.2: Viewer-Diagnose (Hilfe-Menü), Qt-Meldungen im Protokoll,
+  Software-GL-Schalter. Diagnose vom User-PC (RTX 4080, 150% Skalierung):
+  GL 3.3 Desktop ok, 0x0502 anhängig, Testwürfel fehlerfrei gezeichnet
+  aber 0 Pixel im Framebuffer
+- v0.1.3: Fixes dafür — GL_SCISSOR_TEST vor jedem Frame aus, Viewport
+  explizit in physischen Pixeln (HiDPI!), gl_PointSize >= 1 geklemmt,
+  setUniformValue1f. Release-ZIPs heißen jetzt
+  ScanoramaStudio-<tag>-windows.zip. **Warte auf User-Test.**
+- Falls weiter leer: nächste Verdächtige wären QMatrix4x4-Uniform-Upload
+  (mvp per Hand via glUniformMatrix4fv prüfen) und Diagnose um
+  Uniform-Readback/Program-Validate erweitern
+
+
 > Wird laufend gepflegt. Neuester Eintrag oben.
 
 ## 2026-07-03 (spät) — v1 KOMPLETT: CI grün, EXE gebaut, Pi-Tests bestanden
