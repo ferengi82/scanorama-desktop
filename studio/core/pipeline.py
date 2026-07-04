@@ -41,6 +41,7 @@ class ProcessingParams:
     filters: filters.FilterParams = field(default_factory=filters.FilterParams)
     align_floor: bool = True
     floor_threshold_m: float = 0.02
+    colorize_photos: bool = True     # Punkte aus der Fotorunde einfärben
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -57,6 +58,7 @@ class ProcessingParams:
             filters=filters.FilterParams(**f),
             align_floor=d.get("align_floor", True),
             floor_threshold_m=d.get("floor_threshold_m", 0.02),
+            colorize_photos=d.get("colorize_photos", True),
         )
 
     def calibration(self) -> transform.LidarCalibration:
@@ -127,6 +129,16 @@ def process_scan(scan_dir: str | Path,
     if params.align_floor:
         cloud, floor_T = floor.align_floor(cloud, params.floor_threshold_m)
         report["floor_aligned"] = floor_T is not None
+
+    if params.colorize_photos:
+        from . import colorize, photos
+        poses = photos.load_station_photos(raw.path, raw.meta)
+        if poses:
+            cloud.rgb, n_colored = colorize.colorize_cloud(cloud, poses,
+                                                           floor_T)
+            report["colorized_points"] = n_colored
+        else:
+            report["colorized_points"] = 0
 
     report["points"] = len(cloud)
     report["duration_s"] = round(time.monotonic() - t0, 2)

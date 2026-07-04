@@ -40,280 +40,321 @@
     </message>
     <message>
         <location filename="../mainwindow.py" line="96"/>
+        <source>Foto-Farben</source>
+        <translation>Photo colors</translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.py" line="97"/>
         <source>Intensität</source>
         <translation>Intensity</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="97"/>
+        <location filename="../mainwindow.py" line="98"/>
         <source>Höhe</source>
         <translation>Height</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="98"/>
+        <location filename="../mainwindow.py" line="99"/>
         <source>Standpunkt</source>
         <translation>Station</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="103"/>
+        <location filename="../mainwindow.py" line="104"/>
         <source> Punktgröße: </source>
         <translation> Point size: </translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="111"/>
+        <location filename="../mainwindow.py" line="112"/>
         <source>Einpassen</source>
         <translation>Fit view</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="117"/>
+        <location filename="../mainwindow.py" line="118"/>
         <source>&amp;Projekt</source>
         <translation>&amp;Project</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="119"/>
+        <location filename="../mainwindow.py" line="120"/>
         <source>&amp;Neues Projekt…</source>
         <translation>&amp;New project…</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="124"/>
+        <location filename="../mainwindow.py" line="125"/>
         <source>Projekt ö&amp;ffnen…</source>
         <translation>&amp;Open project…</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="130"/>
+        <location filename="../mainwindow.py" line="131"/>
         <source>Scans &amp;importieren…</source>
         <translation>&amp;Import scans…</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="135"/>
+        <location filename="../mainwindow.py" line="136"/>
         <source>Scans vom &amp;Gerät holen…</source>
         <translation>Fetch scans from &amp;device…</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="140"/>
+        <location filename="../mainwindow.py" line="141"/>
         <source>Standpunkt &amp;exportieren…</source>
         <translation>&amp;Export station…</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="145"/>
+        <location filename="../mainwindow.py" line="146"/>
         <source>&amp;Registrierung</source>
         <translation>&amp;Registration</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="147"/>
+        <location filename="../mainwindow.py" line="148"/>
         <source>Standpunkte &amp;registrieren &amp;&amp; fusionieren</source>
         <translation>&amp;Register &amp;&amp; fuse stations</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="152"/>
+        <location filename="../mainwindow.py" line="153"/>
         <source>&amp;Gesamtwolke anzeigen</source>
         <translation>Show &amp;merged cloud</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="158"/>
+        <location filename="../mainwindow.py" line="159"/>
         <source>Gesamtwolke e&amp;xportieren…</source>
         <translation>E&amp;xport merged cloud…</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="163"/>
+        <location filename="../mainwindow.py" line="164"/>
         <source>Alle Standpunkte als &amp;E57 mit Posen (Metashape)…</source>
         <translation>All stations as &amp;E57 with poses (Metashape)…</translation>
     </message>
     <message>
         <location filename="../mainwindow.py" line="168"/>
+        <source>&amp;Fotos</source>
+        <translation>&amp;Photos</translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.py" line="170"/>
+        <source>Fotoposen für &amp;Metashape exportieren…</source>
+        <translation>Export photo poses for &amp;Metashape…</translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.py" line="175"/>
         <source>&amp;Beenden</source>
         <translation>&amp;Quit</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="173"/>
+        <location filename="../mainwindow.py" line="180"/>
         <source>&amp;Einstellungen</source>
         <translation>&amp;Settings</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="174"/>
+        <location filename="../mainwindow.py" line="181"/>
         <source>&amp;Sprache / Language</source>
         <translation>&amp;Language / Sprache</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="187"/>
+        <location filename="../mainwindow.py" line="194"/>
         <source>Die Sprache wird beim nächsten Start übernommen.</source>
         <translation>The language takes effect on the next start.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="190"/>
+        <location filename="../mainwindow.py" line="197"/>
         <source>&amp;Hilfe</source>
         <translation>&amp;Help</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="191"/>
+        <location filename="../mainwindow.py" line="198"/>
         <source>&amp;Viewer-Diagnose</source>
         <translation>&amp;Viewer diagnosis</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="195"/>
+        <location filename="../mainwindow.py" line="202"/>
         <source>Software-Rendering umschalten</source>
         <translation>Toggle software rendering</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="201"/>
+        <location filename="../mainwindow.py" line="208"/>
         <source>Viewer-Diagnose</source>
         <translation>Viewer diagnosis</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="209"/>
+        <location filename="../mainwindow.py" line="216"/>
         <source>Rendering-Modus: %s — wird beim nächsten Start übernommen.</source>
         <translation>Rendering mode: %s — takes effect on the next start.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="233"/>
+        <location filename="../mainwindow.py" line="242"/>
         <source>Ordner für das neue Projekt wählen</source>
         <translation>Choose a folder for the new project</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="237"/>
+        <location filename="../mainwindow.py" line="246"/>
         <source>Neues Projekt</source>
         <translation>New project</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="238"/>
+        <location filename="../mainwindow.py" line="247"/>
         <source>Projektname:</source>
         <translation>Project name:</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="257"/>
+        <location filename="../mainwindow.py" line="266"/>
         <source>Projektordner öffnen</source>
         <translation>Open project folder</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="278"/>
+        <location filename="../mainwindow.py" line="287"/>
         <source>Projekt geladen: %s (%d Standpunkte)</source>
         <translation>Project loaded: %s (%d stations)</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="286"/>
+        <location filename="../mainwindow.py" line="295"/>
         <source>Ordner mit Scan-Ordnern wählen (Stick/Netzwerk)</source>
         <translation>Choose a folder containing scan folders (stick/network)</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="295"/>
+        <location filename="../mainwindow.py" line="304"/>
         <source>Keine Scan-Ordner gefunden in:
 %s</source>
         <translation>No scan folders found in:
 %s</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="306"/>
+        <location filename="../mainwindow.py" line="315"/>
         <source>%d Scan(s) importiert</source>
         <translation>%d scan(s) imported</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="327"/>
+        <location filename="../mainwindow.py" line="336"/>
         <source>%d Scan(s) vom Gerät geholt</source>
         <translation>%d scan(s) fetched from device</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="335"/>
+        <location filename="../mainwindow.py" line="344"/>
         <source>Standpunkt „%s“ aus dem Projekt entfernen?
 (Dateien im Projektordner werden gelöscht)</source>
         <translation>Remove station “%s” from the project?
 (Files in the project folder will be deleted)</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="365"/>
+        <location filename="../mainwindow.py" line="374"/>
         <source>verarbeite…</source>
         <translation>processing…</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="366"/>
+        <location filename="../mainwindow.py" line="375"/>
         <source>Verarbeite %s …</source>
         <translation>Processing %s …</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="371"/>
-        <location filename="../mainwindow.py" line="448"/>
+        <location filename="../mainwindow.py" line="380"/>
+        <location filename="../mainwindow.py" line="457"/>
         <source>%d Punkte</source>
         <translation>%d points</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="377"/>
+        <location filename="../mainwindow.py" line="386"/>
         <source>Fehler</source>
         <translation>Error</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="386"/>
+        <location filename="../mainwindow.py" line="395"/>
         <source>Boden→Z=0</source>
         <translation>floor→Z=0</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="387"/>
+        <location filename="../mainwindow.py" line="396"/>
         <source>kein Bodenfit</source>
         <translation>no floor fit</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="390"/>
+        <location filename="../mainwindow.py" line="399"/>
         <source>Punkte</source>
         <translation>points</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="414"/>
+        <location filename="../mainwindow.py" line="423"/>
         <source>Mindestens zwei aktive Standpunkte nötig.</source>
         <translation>At least two active stations are required.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="424"/>
+        <location filename="../mainwindow.py" line="433"/>
         <source>Registriere %d Standpunkte …</source>
         <translation>Registering %d stations …</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="453"/>
+        <location filename="../mainwindow.py" line="462"/>
         <source>
 Schwächstes Paar: %d→%d (%s, Fitness %.2f)</source>
         <translation>
 Weakest pair: %d→%d (%s, fitness %.2f)</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="458"/>
+        <location filename="../mainwindow.py" line="467"/>
         <source>Registrierung abgeschlossen — Gesamtwolke: %d Punkte.</source>
         <translation>Registration finished — merged cloud: %d points.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="473"/>
+        <location filename="../mainwindow.py" line="512"/>
+        <source>Kein Standpunkt hat eine Fotorunde (photos/ + meta.json).</source>
+        <translation>No station has a photo round (photos/ + meta.json).</translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.py" line="518"/>
+        <source>Hinweis: %s wurde(n) noch nicht verarbeitet — die Fotoposen werden ohne Bodenausrichtung exportiert. Für konsistente Posen erst verarbeiten (bzw. registrieren).</source>
+        <translation>Note: %s has/have not been processed yet — photo poses are exported without floor alignment. For consistent poses, process (or register) first.</translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.py" line="527"/>
+        <source>Exportiere %d Fotos nach %s …</source>
+        <translation>Exporting %d photos to %s …</translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.py" line="532"/>
+        <source>Metashape-Export fertig:
+%s
+
+%d Fotos aus %d Standpunkten — Anleitung liegt als ANLEITUNG.md dabei.</source>
+        <translation>Metashape export finished:
+%s
+
+%d photos from %d stations — instructions included as ANLEITUNG.md.</translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.py" line="551"/>
         <source>Gesamtwolke: %d Punkte aus %d Standpunkten</source>
         <translation>Merged cloud: %d points from %d stations</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="480"/>
+        <location filename="../mainwindow.py" line="558"/>
         <source>Gesamtwolke exportieren</source>
         <translation>Export merged cloud</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="481"/>
-        <location filename="../mainwindow.py" line="530"/>
+        <location filename="../mainwindow.py" line="559"/>
+        <location filename="../mainwindow.py" line="608"/>
         <source>Format:</source>
         <translation>Format:</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="490"/>
-        <location filename="../mainwindow.py" line="541"/>
+        <location filename="../mainwindow.py" line="568"/>
+        <location filename="../mainwindow.py" line="619"/>
         <source>Exportiert: %s</source>
         <translation>Exported: %s</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="503"/>
+        <location filename="../mainwindow.py" line="581"/>
         <source>Erst registrieren — es gibt noch keine Posen.</source>
         <translation>Register first — there are no poses yet.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="513"/>
+        <location filename="../mainwindow.py" line="591"/>
         <source>E57 mit Posen exportiert: %s</source>
         <translation>E57 with poses exported: %s</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="526"/>
+        <location filename="../mainwindow.py" line="604"/>
         <source>Bitte zuerst einen verarbeiteten Standpunkt wählen.</source>
         <translation>Please select a processed station first.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="529"/>
+        <location filename="../mainwindow.py" line="607"/>
         <source>Exportieren</source>
         <translation>Export</translation>
     </message>
@@ -328,7 +369,7 @@ Weakest pair: %d→%d (%s, fitness %.2f)</translation>
     <message>
         <location filename="../panels.py" line="98"/>
         <source>Strahlkalibrierung aus der meta.json des Scans übernehmen (trägt der Scanner ein). Die vier Felder unten greifen nur, wenn der Scan keine Kalibrierung mitbringt oder der Haken aus ist.</source>
-        <translation>Use the beam calibration from the scan's meta.json (written by the scanner). The four fields below only apply if the scan carries no calibration or this box is unchecked.</translation>
+        <translation>Use the beam calibration from the scan&apos;s meta.json (written by the scanner). The four fields below only apply if the scan carries no calibration or this box is unchecked.</translation>
     </message>
     <message>
         <location filename="../panels.py" line="111"/>
@@ -376,22 +417,32 @@ Weakest pair: %d→%d (%s, fitness %.2f)</translation>
         <translation>Align floor (Z=0)</translation>
     </message>
     <message>
-        <location filename="../panels.py" line="140"/>
+        <location filename="../panels.py" line="135"/>
+        <source>Punkte aus Fotos einfärben</source>
+        <translation>Colorize points from photos</translation>
+    </message>
+    <message>
+        <location filename="../panels.py" line="137"/>
+        <source>Färbt die Punktwolke aus den Fotos der Fotorunde ein (Scans mit photos/-Ordner). Farben erscheinen im Viewer-Modus „Foto-Farben“ und in den Exporten.</source>
+        <translation>Colors the point cloud from the photo-round images (scans with a photos/ folder). Colors appear in the “Photo colors” viewer mode and in the exports.</translation>
+    </message>
+    <message>
+        <location filename="../panels.py" line="146"/>
         <source>Voxelgröße der Fusion: pro Voxel bleibt genau ein (gewichteter) Punkt. Kleiner = dichtere Gesamtwolke.</source>
         <translation>Fusion voxel size: exactly one (weighted) point remains per voxel. Smaller = denser merged cloud.</translation>
     </message>
     <message>
-        <location filename="../panels.py" line="142"/>
+        <location filename="../panels.py" line="148"/>
         <source>Fusions-Voxel</source>
         <translation>Fusion voxel</translation>
     </message>
     <message>
-        <location filename="../panels.py" line="144"/>
+        <location filename="../panels.py" line="150"/>
         <source>Neu verarbeiten</source>
         <translation>Reprocess</translation>
     </message>
     <message>
-        <location filename="../panels.py" line="147"/>
+        <location filename="../panels.py" line="153"/>
         <source>Änderungen wirken nach „Neu verarbeiten“ auf alle Standpunkte.</source>
         <translation>Changes take effect on all stations after “Reprocess”.</translation>
     </message>

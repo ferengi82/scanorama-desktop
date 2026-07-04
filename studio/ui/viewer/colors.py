@@ -14,7 +14,7 @@ import numpy as np
 
 from ...core.cloud import PointCloud
 
-COLOR_MODES = ("intensity", "height", "station")
+COLOR_MODES = ("intensity", "height", "station", "rgb")
 
 # Stützstellen einer kompakten Turbo-ähnlichen Rampe (blau→cyan→gelb→rot)
 _RAMP = np.array([
@@ -65,5 +65,11 @@ def colorize(cloud: PointCloud, mode: str) -> np.ndarray:
 
     if mode == "station":
         return _STATIONS[cloud.station.astype(np.int64) % len(_STATIONS)]
+
+    if mode == "rgb":
+        if cloud.rgb is not None:
+            return cloud.rgb
+        # Wolke ohne Fotos → Intensitäts-Grau als Fallback
+        return colorize(cloud, "intensity")
 
     raise ValueError(f"Unbekannter Farbmodus: {mode!r} (kenne {COLOR_MODES})")

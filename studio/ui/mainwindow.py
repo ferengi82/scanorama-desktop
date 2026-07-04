@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (QComboBox, QDockWidget, QFileDialog,
                                QSlider, QToolBar)
 
 from .. import APP_NAME, __version__
-from ..core import export, fusion
+from ..core import export, fusion, photos
 from ..core.pipeline import ProcessingResult, process_scan
 from ..core.project import Project, ProjectError
 from ..core.rawscan import find_scan_folders
@@ -93,6 +93,7 @@ class MainWindow(QMainWindow):
 
         tb.addWidget(QLabel(self.tr(" Farbe: ")))
         self.color_box = QComboBox()
+        self.color_box.addItem(self.tr("Foto-Farben"), "rgb")
         self.color_box.addItem(self.tr("Intensität"), "intensity")
         self.color_box.addItem(self.tr("Höhe"), "height")
         self.color_box.addItem(self.tr("Standpunkt"), "station")
@@ -164,6 +165,12 @@ class MainWindow(QMainWindow):
         self.act_export_e57.triggered.connect(self._export_e57_stations)
         m_reg.addAction(self.act_export_e57)
 
+        m_photos = self.menuBar().addMenu(self.tr("&Fotos"))
+        self.act_metashape = QAction(
+            self.tr("Fotoposen für &Metashape exportieren…"), self)
+        self.act_metashape.triggered.connect(self._export_metashape_photos)
+        m_photos.addAction(self.act_metashape)
+
         m_project.addSeparator()
         act = QAction(self.tr("&Beenden"), self)
         act.setShortcut(QKeySequence.StandardKey.Quit)
@@ -224,6 +231,8 @@ class MainWindow(QMainWindow):
         self.act_export_fused.setEnabled(has_fused)
         self.act_export_e57.setEnabled(
             has_project and any(s.pose is not None for s in self.project.stations))
+        self.act_metashape.setEnabled(
+            has_project and bool(self.project.stations))
 
     # ------------------------------------------------------------------
     # Projekt-Verwaltung
@@ -463,12 +472,81 @@ class MainWindow(QMainWindow):
                            on_error=lambda m: QMessageBox.critical(
                                self, APP_NAME, m))
 
+    def _export_metashape_photos(self) -> None:
+        """Fotoposen aller Standpunkte → output/metashape/ (CSV + Kopien)."""
+        if self.project is None:
+            return
+        import json
+
+        import numpy as np
+
+        stations_data = []
+        ohne_bodenfit = []
+        for s in self.project.stations:
+            if not s.enabled:
+                continue
+            scan_dir = self.project.station_path(s)
+            meta_path = scan_dir / "meta.json"
+            if not meta_path.exists():
+                continue
+            meta = json.loads(meta_path.read_text(encoding="utf-8"))
+            poses = photos.load_station_photos(scan_dir, meta,
+                                               label_prefix=s.folder)
+            if not poses:
+                continue
+            # Gesamt-Transformation: Registrierung ∘ Bodenfit
+            result = self._results.get(s.folder)
+            floor_T = result.floor_transform if result is not None else None
+            if floor_T is None and result is None:
+                ohne_bodenfit.append(s.folder)
+            T = s.pose_matrix()
+            if T is None:
+                T = floor_T
+            elif floor_T is not None:
+                T = T @ np.asarray(floor_T)
+            stations_data.append((s.folder, poses, T))
+
+        if not stations_data:
+            QMessageBox.information(
+                self, APP_NAME,
+                self.tr("Kein Standpunkt hat eine Fotorunde (photos/ + "
+                        "meta.json)."))
+            return
+        if ohne_bodenfit:
+            QMessageBox.warning(
+                self, APP_NAME,
+                self.tr("Hinweis: %s wurde(n) noch nicht verarbeitet — "
+                        "die Fotoposen werden ohne Bodenausrichtung "
+                        "exportiert. Für konsistente Posen erst "
+                        "verarbeiten (bzw. registrieren).")
+                % ", ".join(ohne_bodenfit))
+
+        out = self.project.output_dir / "metashape"
+        n_photos = sum(len(p) for _, p, _ in stations_data)
+        self.statusBar().showMessage(
+            self.tr("Exportiere %d Fotos nach %s …") % (n_photos, out))
+
+        def on_result(csv_path):
+            QMessageBox.information(
+                self, APP_NAME,
+                self.tr("Metashape-Export fertig:\n%s\n\n%d Fotos aus %d "
+                        "Standpunkten — Anleitung liegt als ANLEITUNG.md "
+                        "dabei.") % (csv_path.parent, n_photos,
+                                     len(stations_data)))
+
+        self.workers.start(photos.export_metashape, stations_data, out,
+                           on_result=on_result,
+                           on_error=lambda m: QMessageBox.critical(
+                               self, APP_NAME, m))
+
     def _show_fused(self) -> None:
         if self._fused is None:
             return
         self.viewer.set_cloud(self._fused)
-        self.color_box.setCurrentIndex(2)   # Standpunkt-Farben
-        self.viewer.set_color_mode("station")
+        # Mit Foto-Farben fusioniert → RGB zeigen, sonst Standpunkt-Farben
+        mode = "rgb" if self._fused.rgb is not None else "station"
+        self.color_box.setCurrentIndex(self.color_box.findData(mode))
+        self.viewer.set_color_mode(mode)
         self.statusBar().showMessage(
             self.tr("Gesamtwolke: %d Punkte aus %d Standpunkten") % (
                 len(self._fused), self._fused.meta.get("stations", 0)))

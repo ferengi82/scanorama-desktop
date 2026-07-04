@@ -132,6 +132,12 @@ class ParamsPanel(QWidget):
         form.addRow(self.sor)
         self.floor = QCheckBox(self.tr("Boden ausrichten (Z=0)"))
         form.addRow(self.floor)
+        self.colorize = QCheckBox(self.tr("Punkte aus Fotos einfärben"))
+        self.colorize.setToolTip(self.tr(
+            "Färbt die Punktwolke aus den Fotos der Fotorunde ein "
+            "(Scans mit photos/-Ordner). Farben erscheinen im Viewer-"
+            "Modus „Foto-Farben“ und in den Exporten."))
+        form.addRow(self.colorize)
 
         self.fusion_voxel = QDoubleSpinBox(minimum=0.1, maximum=20.0,
                                            singleStep=0.1, decimals=1)
@@ -174,6 +180,7 @@ class ParamsPanel(QWidget):
         self.min_dist.setValue(p.filters.min_dist_m)
         self.sor.setChecked(p.filters.sor_enabled)
         self.floor.setChecked(p.align_floor)
+        self.colorize.setChecked(p.colorize_photos)
 
     def params(self) -> ProcessingParams:
         return ProcessingParams(
@@ -189,6 +196,7 @@ class ParamsPanel(QWidget):
                 sor_enabled=self.sor.isChecked(),
             ),
             align_floor=self.floor.isChecked(),
+            colorize_photos=self.colorize.isChecked(),
         )
 
 

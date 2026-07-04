@@ -92,6 +92,15 @@ def fuse(clouds: list[PointCloud], poses: list[np.ndarray],
     out_dist = (np.bincount(
         groups, weights=merged.scanner_dist.astype(np.float64) * w,
         minlength=n_voxels) / w_sum)
+    out_rgb = None
+    if merged.rgb is not None:
+        out_rgb = np.column_stack([
+            np.bincount(groups,
+                        weights=merged.rgb[:, k].astype(np.float64) * w,
+                        minlength=n_voxels) / w_sum
+            for k in range(3)
+        ])
+        out_rgb = np.clip(np.round(out_rgb), 0, 255).astype(np.uint8)
 
     # Station: Beitrag mit dem höchsten Gewicht gewinnt.
     # Sortierung nach (Voxel, -Gewicht) → erster Eintrag pro Gruppe.
@@ -105,6 +114,7 @@ def fuse(clouds: list[PointCloud], poses: list[np.ndarray],
         intensity=np.clip(np.round(out_intensity), 0, 255).astype(np.uint8),
         scanner_dist=out_dist.astype(np.float32),
         station=out_station,
+        rgb=out_rgb,
         meta={"scan_name": "fusion",
               "voxel_size_m": voxel_size_m,
               "stations": len(clouds)},

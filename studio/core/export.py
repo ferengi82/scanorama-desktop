@@ -27,20 +27,26 @@ log = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 def save_ply(cloud: PointCloud, filename: str | Path) -> None:
-    """Binary-PLY mit intensity/distance/station-Zusatzfeldern."""
+    """Binary-PLY mit intensity/distance/station (+ RGB, falls vorhanden)."""
     n = len(cloud)
-    dtype = np.dtype([
-        ("x", "<f4"), ("y", "<f4"), ("z", "<f4"),
-        ("intensity", "u1"),
-        ("distance", "<f4"),
-        ("station", "<u2"),
-    ])
-    out = np.empty(n, dtype=dtype)
+    has_rgb = cloud.rgb is not None
+    fields = [("x", "<f4"), ("y", "<f4"), ("z", "<f4")]
+    if has_rgb:
+        fields += [("red", "u1"), ("green", "u1"), ("blue", "u1")]
+    fields += [("intensity", "u1"), ("distance", "<f4"), ("station", "<u2")]
+    out = np.empty(n, dtype=np.dtype(fields))
     out["x"], out["y"], out["z"] = cloud.xyz[:, 0], cloud.xyz[:, 1], cloud.xyz[:, 2]
+    if has_rgb:
+        out["red"], out["green"], out["blue"] = (cloud.rgb[:, 0],
+                                                 cloud.rgb[:, 1],
+                                                 cloud.rgb[:, 2])
     out["intensity"] = cloud.intensity
     out["distance"] = cloud.scanner_dist
     out["station"] = cloud.station
 
+    color_props = ("property uchar red\n"
+                   "property uchar green\n"
+                   "property uchar blue\n") if has_rgb else ""
     header = (
         "ply\n"
         "format binary_little_endian 1.0\n"
@@ -49,6 +55,7 @@ def save_ply(cloud: PointCloud, filename: str | Path) -> None:
         "property float x\n"
         "property float y\n"
         "property float z\n"
+        f"{color_props}"
         "property uchar intensity\n"
         "property float distance\n"
         "property ushort station\n"
@@ -57,7 +64,8 @@ def save_ply(cloud: PointCloud, filename: str | Path) -> None:
     with open(filename, "wb") as f:
         f.write(header.encode("ascii"))
         f.write(out.tobytes())
-    log.info(f"PLY geschrieben: {filename} ({n:,} Punkte)")
+    log.info(f"PLY geschrieben: {filename} ({n:,} Punkte"
+             f"{', RGB' if has_rgb else ''})")
 
 
 def load_ply(filename: str | Path) -> PointCloud:
@@ -69,18 +77,23 @@ def load_ply(filename: str | Path) -> PointCloud:
             if not line:
                 raise ValueError(f"{filename}: PLY-Header unvollständig")
             header += line
-        n = int([ln for ln in header.decode().splitlines()
+        lines = header.decode().splitlines()
+        n = int([ln for ln in lines
                  if ln.startswith("element vertex")][0].split()[-1])
-        dtype = np.dtype([
-            ("x", "<f4"), ("y", "<f4"), ("z", "<f4"),
-            ("intensity", "u1"), ("distance", "<f4"), ("station", "<u2"),
-        ])
+        has_rgb = any(ln == "property uchar red" for ln in lines)
+        fields = [("x", "<f4"), ("y", "<f4"), ("z", "<f4")]
+        if has_rgb:
+            fields += [("red", "u1"), ("green", "u1"), ("blue", "u1")]
+        fields += [("intensity", "u1"), ("distance", "<f4"), ("station", "<u2")]
+        dtype = np.dtype(fields)
         data = np.frombuffer(f.read(n * dtype.itemsize), dtype=dtype)
     return PointCloud(
         xyz=np.column_stack((data["x"], data["y"], data["z"])),
         intensity=data["intensity"].copy(),
         scanner_dist=data["distance"].copy(),
         station=data["station"].copy(),
+        rgb=(np.column_stack((data["red"], data["green"], data["blue"]))
+             if has_rgb else None),
     )
 
 
@@ -89,10 +102,14 @@ def load_ply(filename: str | Path) -> PointCloud:
 # ---------------------------------------------------------------------------
 
 def save_las(cloud: PointCloud, filename: str | Path) -> None:
-    """LAS 1.4 (bzw. LAZ bei .laz-Endung) mit 0.1-mm-Auflösung."""
+    """LAS 1.4 (bzw. LAZ bei .laz-Endung) mit 0.1-mm-Auflösung.
+
+    Mit RGB → point_format 2 (Farbe in LAS-üblichen uint16).
+    """
     import laspy
 
-    las = laspy.LasData(laspy.LasHeader(point_format=0, version="1.4"))
+    fmt = 2 if cloud.rgb is not None else 0
+    las = laspy.LasData(laspy.LasHeader(point_format=fmt, version="1.4"))
     xyz = cloud.xyz.astype(np.float64)
     las.header.offsets = xyz.min(axis=0)
     las.header.scales = [0.0001, 0.0001, 0.0001]
@@ -100,8 +117,13 @@ def save_las(cloud: PointCloud, filename: str | Path) -> None:
     # Scanner liefert 0–255 → LAS-üblich auf uint16 spreizen
     las.intensity = (cloud.intensity.astype(np.uint16) * 257)
     las.point_source_id = cloud.station.astype(np.uint16)
+    if cloud.rgb is not None:
+        las.red = cloud.rgb[:, 0].astype(np.uint16) * 257
+        las.green = cloud.rgb[:, 1].astype(np.uint16) * 257
+        las.blue = cloud.rgb[:, 2].astype(np.uint16) * 257
     las.write(str(filename))
-    log.info(f"LAS geschrieben: {filename} ({len(cloud):,} Punkte)")
+    log.info(f"LAS geschrieben: {filename} ({len(cloud):,} Punkte"
+             f"{', RGB' if cloud.rgb is not None else ''})")
 
 
 # ---------------------------------------------------------------------------
@@ -183,6 +205,10 @@ def save_e57(clouds: list[PointCloud], filename: str | Path,
                 "cartesianZ": np.ascontiguousarray(xyz[:, 2]),
                 "intensity": cloud.intensity.astype(np.float64),
             }
+            if cloud.rgb is not None:
+                data["colorRed"] = cloud.rgb[:, 0].astype(np.float64)
+                data["colorGreen"] = cloud.rgb[:, 1].astype(np.float64)
+                data["colorBlue"] = cloud.rgb[:, 2].astype(np.float64)
             if poses is None:
                 translation = np.zeros(3)
                 rotation = np.array([1.0, 0.0, 0.0, 0.0])

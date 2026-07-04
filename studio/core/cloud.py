@@ -11,6 +11,8 @@ Felder pro Punkt:
                                  distanzgewichtete Fusion, STL27L-Fehlermodell)
     station      (N,)  uint16    Standpunkt-Index (0 bei Einzelscan;
                                  nach Fusion: Herkunft jedes Punkts)
+    rgb          (N,3) uint8     optionale Farben aus der Fotorunde
+                                 (None = nicht eingefärbt)
 """
 
 from __future__ import annotations
@@ -26,6 +28,7 @@ class PointCloud:
     intensity: np.ndarray                 # (N,)  uint8
     scanner_dist: np.ndarray              # (N,)  float32
     station: np.ndarray | None = None     # (N,)  uint16, lazy erzeugt
+    rgb: np.ndarray | None = None         # (N,3) uint8, optional
     meta: dict = field(default_factory=dict)
 
     def __post_init__(self):
@@ -41,6 +44,10 @@ class PointCloud:
             self.station = np.asarray(self.station, dtype=np.uint16)
             if len(self.station) != n:
                 raise ValueError("station-Array hat falsche Länge")
+        if self.rgb is not None:
+            self.rgb = np.ascontiguousarray(self.rgb, dtype=np.uint8)
+            if self.rgb.shape != (n, 3):
+                raise ValueError("rgb-Array muss Form (N,3) haben")
 
     def __len__(self) -> int:
         return len(self.xyz)
@@ -52,6 +59,7 @@ class PointCloud:
             intensity=self.intensity[mask],
             scanner_dist=self.scanner_dist[mask],
             station=self.station[mask],
+            rgb=self.rgb[mask] if self.rgb is not None else None,
             meta=dict(self.meta),
         )
 
@@ -66,6 +74,7 @@ class PointCloud:
             intensity=self.intensity.copy(),
             scanner_dist=self.scanner_dist.copy(),
             station=self.station.copy(),
+            rgb=self.rgb.copy() if self.rgb is not None else None,
             meta=dict(self.meta),
         )
 
@@ -81,10 +90,14 @@ class PointCloud:
         """Hängt mehrere Wolken aneinander (station bleibt erhalten)."""
         if not clouds:
             raise ValueError("Keine Wolken zum Zusammenfügen")
+        # rgb nur, wenn ALLE Teilwolken Farben haben (alles-oder-nichts)
+        rgb = (np.vstack([c.rgb for c in clouds])
+               if all(c.rgb is not None for c in clouds) else None)
         return PointCloud(
             xyz=np.vstack([c.xyz for c in clouds]),
             intensity=np.concatenate([c.intensity for c in clouds]),
             scanner_dist=np.concatenate([c.scanner_dist for c in clouds]),
             station=np.concatenate([c.station for c in clouds]),
+            rgb=rgb,
             meta={"concat_of": [c.meta.get("scan_name", "?") for c in clouds]},
         )

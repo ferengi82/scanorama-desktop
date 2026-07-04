@@ -1,5 +1,31 @@
 # Arbeitsstand Scanorama Studio
 
+## 2026-07-04 (nachts) — Fotoverarbeitung: Metashape-Export + Einfärbung
+
+- `core/photos.py`: Fotoposen aus meta.json (POSE_RECIPE), Kompass-Yaw-
+  Euler (R = R_z(−yaw)·R_x(pitch)·R_y(roll) — v1 hatte beim Kombinieren
+  registrierter Standpunkte das Yaw-Vorzeichen falsch), Metashape-Export
+  (Foto-Kopien mit eindeutigen Labels + cameras.csv + calibration.xml +
+  ANLEITUNG.md) → Menü „Fotos", output/metashape/
+- `core/colorize.py`: RGB pro Punkt aus bestem Foto (Pinhole f=2500 px,
+  Z-Buffer-Occlusion /16-Raster); Pipeline-Schalter `colorize_photos`
+  (Default an), `PointCloud.rgb` durch Fusion/PLY/LAS(pf2)/E57/Viewer
+  („Foto-Farben", neuer Default mit Grau-Fallback). Neue Dependency
+  pillow. 93 Tests grün, End-to-End an 2 echten Standpunkten validiert
+  (Registrierung Fitness 0.87/9 mm, 216 Fotos exportiert, 72 % Punkte
+  eingefärbt in ~40 s).
+- **OFFEN: Kamera-Mount-Werte stimmen nicht mehr** — die v1-Werte
+  (az_offset 270/35/145, pitch +50/+15/−20) passen nachweislich nicht
+  zum aktuellen Aufbau (Reprojektion zeigt andere Szene als Foto,
+  Einfärbung ghostet). Automatische Bestimmung per Wolke↔Foto-
+  Gradientenkorrelation versucht (Scratchpad mount_calib.py): beste
+  Kandidaten usb0 172°/+53°, usb1 278°/−17°, usb2 86°/+28° — aber bei
+  den dunklen Fotos nicht verlässlich (Einzelfoto-Scores ≈ Rauschen;
+  evtl. stand zudem eine Person im Raum). Nächster Schritt: User nach
+  physischer Anordnung fragen bzw. helle Referenz-Fotorunde machen,
+  dann cameras.json auf dem Pi aktualisieren. Der Feature-Code selbst
+  ist davon unabhängig korrekt.
+
 ## 2026-07-04 (abends) — v0.1.5: Strahlkalibrierung (Naht-Fehler gelöst)
 
 - Ursache der Naht (erste/letzte Messung eines 180°-Scans weichen cm ab):

@@ -109,7 +109,9 @@ class PointCloudGLWidget(QOpenGLWidget):
         self.camera = OrbitCamera()
         self.lod_budget = lod_budget
         self.point_size = 2.0
-        self.color_mode = "intensity"
+        # Default "rgb": eingefärbte Wolken zeigen Foto-Farben, Wolken
+        # ohne Fotos fallen automatisch auf Intensitäts-Grau zurück.
+        self.color_mode = "rgb"
         self.tool = "orbit"                          # orbit | measure | info
         self.clip_box: tuple[np.ndarray, np.ndarray] | None = None
         self._overlay: np.ndarray | None = None      # (M,3) Marker-Punkte
