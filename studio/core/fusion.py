@@ -24,7 +24,7 @@ from .cloud import PointCloud
 
 log = logging.getLogger(__name__)
 
-DEFAULT_VOXEL_M = 0.03
+DEFAULT_VOXEL_M = 0.01
 
 
 def distance_weight(dist_m: np.ndarray) -> np.ndarray:

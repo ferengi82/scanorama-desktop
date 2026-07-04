@@ -271,6 +271,7 @@ class MainWindow(QMainWindow):
         self._fused = None
         self.viewer.set_cloud(None)
         self.params_panel.set_params(self.project.params)
+        self.params_panel.set_fusion_voxel_m(self.project.fusion_voxel_m)
         self.project_panel.set_project(self.project)
         self.setWindowTitle(f"{APP_NAME} — {self.project.name}")
         self.statusBar().showMessage(
@@ -392,6 +393,7 @@ class MainWindow(QMainWindow):
         if self.project is None:
             return
         self.project.params = self.params_panel.params()
+        self.project.fusion_voxel_m = self.params_panel.fusion_voxel_m()
         self.project.save()
         self._results.clear()
         current = self.project_panel.current_folder()
@@ -416,6 +418,7 @@ class MainWindow(QMainWindow):
         params = project.params
         cached = dict(self._results)
         folders = [s.folder for s in enabled]
+        project.fusion_voxel_m = self.params_panel.fusion_voxel_m()
         voxel = project.fusion_voxel_m
         self.statusBar().showMessage(
             self.tr("Registriere %d Standpunkte …") % len(enabled))

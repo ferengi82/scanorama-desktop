@@ -114,6 +114,14 @@ class ParamsPanel(QWidget):
         self.floor = QCheckBox(self.tr("Boden ausrichten (Z=0)"))
         form.addRow(self.floor)
 
+        self.fusion_voxel = QDoubleSpinBox(minimum=0.1, maximum=20.0,
+                                           singleStep=0.1, decimals=1)
+        self.fusion_voxel.setSuffix(" cm")
+        self.fusion_voxel.setToolTip(self.tr(
+            "Voxelgröße der Fusion: pro Voxel bleibt genau ein "
+            "(gewichteter) Punkt. Kleiner = dichtere Gesamtwolke."))
+        form.addRow(self.tr("Fusions-Voxel"), self.fusion_voxel)
+
         self.btn_apply = QPushButton(self.tr("Neu verarbeiten"))
         self.btn_apply.clicked.connect(self.applyRequested.emit)
 
@@ -129,6 +137,12 @@ class ParamsPanel(QWidget):
         layout.addStretch()
 
         self.set_params(ProcessingParams())
+
+    def set_fusion_voxel_m(self, meters: float) -> None:
+        self.fusion_voxel.setValue(meters * 100.0)
+
+    def fusion_voxel_m(self) -> float:
+        return self.fusion_voxel.value() / 100.0
 
     def set_params(self, p: ProcessingParams) -> None:
         self.el_offset.setValue(p.el_offset_deg)

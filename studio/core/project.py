@@ -59,7 +59,7 @@ class Project:
     params: ProcessingParams = field(default_factory=ProcessingParams)
     stations: list[Station] = field(default_factory=list)
     created: str = ""
-    fusion_voxel_m: float = 0.03     # Kantenlänge der Fusions-Voxel
+    fusion_voxel_m: float = 0.01     # Kantenlänge der Fusions-Voxel (1 cm)
 
     # ------------------------------------------------------------------
     # Anlegen / Öffnen / Speichern
@@ -100,7 +100,7 @@ class Project:
             params=ProcessingParams.from_dict(data.get("params", {})),
             stations=[Station(**s) for s in data.get("stations", [])],
             created=data.get("created", ""),
-            fusion_voxel_m=data.get("fusion_voxel_m", 0.03),
+            fusion_voxel_m=data.get("fusion_voxel_m", 0.01),
         )
         # Verwaiste Einträge melden (Scan-Ordner von Hand gelöscht?)
         for s in project.stations:
