@@ -12,7 +12,7 @@
 - v0.1.3: Fixes dafür — GL_SCISSOR_TEST vor jedem Frame aus, Viewport
   explizit in physischen Pixeln (HiDPI!), gl_PointSize >= 1 geklemmt,
   setUniformValue1f. Release-ZIPs heißen jetzt
-  ScanoramaStudio-<tag>-windows.zip. **Warte auf User-Test.**
+  ScanoramaStudio-<tag>-windows.zip. **GELÖST: User bestätigt, Viewer läuft mit v0.1.3.**
 - Falls weiter leer: nächste Verdächtige wären QMatrix4x4-Uniform-Upload
   (mvp per Hand via glUniformMatrix4fv prüfen) und Diagnose um
   Uniform-Readback/Program-Validate erweitern
