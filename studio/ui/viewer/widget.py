@@ -218,6 +218,59 @@ class PointCloudGLWidget(QOpenGLWidget):
     def cloud(self) -> PointCloud | None:
         return self._cloud
 
+    def run_diagnosis(self) -> str:
+        """Selbstdiagnose: Zustand + Testwürfel rendern + Pixel zählen.
+
+        Rendert 200k weiße Zufallspunkte und prüft, ob im Framebuffer
+        etwas ankommt — grenzt Treiber-/Shader-/Upload-Probleme ein.
+        """
+        lines = []
+        ctx = self.context()
+        lines.append(f"Kontext gültig: {bool(ctx and ctx.isValid())}, "
+                     f"gl_ready: {self._gl_ready}, "
+                     f"Größe: {self.width()}×{self.height()}")
+        if self._cloud is not None:
+            lines.append(f"Aktuelle Wolke: {len(self._cloud):,} Punkte | "
+                         f"Kamera dist={self.camera.distance:.2f} "
+                         f"target={np.round(self.camera.target, 2).tolist()}")
+        else:
+            lines.append("Aktuelle Wolke: keine")
+        if ctx:
+            self.makeCurrent()
+            err = ctx.functions().glGetError()
+            lines.append(f"glGetError: 0x{err:04X}"
+                         + (" (OK)" if err == 0 else " (FEHLER!)"))
+            self.doneCurrent()
+
+        # Testwürfel: 200k weiße Punkte in [-1,1]³
+        from ...core.cloud import PointCloud as _PC
+        rng = np.random.default_rng(0)
+        n = 200_000
+        prev = self._cloud
+        test = _PC(xyz=rng.uniform(-1, 1, (n, 3)).astype(np.float32),
+                   intensity=np.full(n, 255, np.uint8),
+                   scanner_dist=np.ones(n, np.float32))
+        self.set_cloud(test)
+        img = self.grabFramebuffer()
+        arr = np.frombuffer(bytes(img.constBits()), dtype=np.uint8)
+        px = arr.reshape(-1, 4)[:, :3].astype(np.int64)
+        bg = np.array([33, 36, 38])   # clearColor 0.13/0.14/0.15
+        foreground = int((np.abs(px - bg).sum(axis=1) > 30).sum())
+        lines.append(f"Testwürfel-Frame: {img.width()}×{img.height()}, "
+                     f"{foreground:,} Nicht-Hintergrund-Pixel "
+                     + ("→ Rendering FUNKTIONIERT" if foreground > 1000
+                        else "→ NICHTS gerendert"))
+        if ctx:
+            self.makeCurrent()
+            err = ctx.functions().glGetError()
+            lines.append(f"glGetError nach Testrender: 0x{err:04X}")
+            self.doneCurrent()
+
+        self.set_cloud(prev)
+        report = "\n".join(lines)
+        log.info("Viewer-Diagnose:\n" + report)
+        return report
+
     # ------------------------------------------------------------------
     # OpenGL
     # ------------------------------------------------------------------

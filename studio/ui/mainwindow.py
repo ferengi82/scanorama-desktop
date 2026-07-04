@@ -46,6 +46,7 @@ class MainWindow(QMainWindow):
         self._build_docks()
         self._build_toolbar()
         self._build_menu()
+        self._build_help_menu()
         self._update_enabled()
         self.statusBar().showMessage(
             self.tr("Bereit — Projekt anlegen oder öffnen (Strg+N / Strg+O)"))
@@ -184,6 +185,29 @@ class MainWindow(QMainWindow):
         QMessageBox.information(
             self, APP_NAME,
             self.tr("Die Sprache wird beim nächsten Start übernommen."))
+
+    def _build_help_menu(self) -> None:
+        m_help = self.menuBar().addMenu(self.tr("&Hilfe"))
+        act = QAction(self.tr("&Viewer-Diagnose"), self)
+        act.triggered.connect(self._run_viewer_diagnosis)
+        m_help.addAction(act)
+
+        act = QAction(self.tr("Software-Rendering umschalten"), self)
+        act.triggered.connect(self._toggle_software_gl)
+        m_help.addAction(act)
+
+    def _run_viewer_diagnosis(self) -> None:
+        report = self.viewer.run_diagnosis()
+        QMessageBox.information(self, self.tr("Viewer-Diagnose"), report)
+
+    def _toggle_software_gl(self) -> None:
+        current = self.settings.value("opengl", "desktop")
+        new = "software" if current == "desktop" else "desktop"
+        self.settings.setValue("opengl", new)
+        QMessageBox.information(
+            self, APP_NAME,
+            self.tr("Rendering-Modus: %s — wird beim nächsten Start "
+                    "übernommen.") % new)
 
     def _update_enabled(self) -> None:
         has_project = self.project is not None
