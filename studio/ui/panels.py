@@ -92,10 +92,29 @@ class ParamsPanel(QWidget):
         super().__init__(parent)
         form = QFormLayout()
 
-        self.el_offset = QDoubleSpinBox(minimum=-30, maximum=30,
-                                        singleStep=0.1, decimals=2)
-        self.el_offset.setSuffix(" °")
+        self.calib_from_meta = QCheckBox(
+            self.tr("Kalibrierung aus Scan-Metadaten"))
+        self.calib_from_meta.setToolTip(self.tr(
+            "Strahlkalibrierung aus der meta.json des Scans übernehmen "
+            "(trägt der Scanner ein). Die vier Felder unten greifen nur, "
+            "wenn der Scan keine Kalibrierung mitbringt oder der Haken "
+            "aus ist."))
+        form.addRow(self.calib_from_meta)
+
+        def _angle_box(decimals=3, rng=30.0):
+            box = QDoubleSpinBox(minimum=-rng, maximum=rng,
+                                 singleStep=0.05, decimals=decimals)
+            box.setSuffix(" °")
+            return box
+
+        self.el_offset = _angle_box()
         form.addRow(self.tr("Elevations-Offset"), self.el_offset)
+        self.beam_skew = _angle_box(rng=5.0)
+        form.addRow(self.tr("Strahl-Skew"), self.beam_skew)
+        self.beam_wobble = _angle_box(rng=5.0)
+        form.addRow(self.tr("Strahl-Wobble"), self.beam_wobble)
+        self.halfplane_split = _angle_box(rng=5.0)
+        form.addRow(self.tr("Halbebenen-Versatz"), self.halfplane_split)
 
         self.block_start = QDoubleSpinBox(minimum=0, maximum=360, decimals=1)
         self.block_start.setSuffix(" °")
@@ -145,7 +164,11 @@ class ParamsPanel(QWidget):
         return self.fusion_voxel.value() / 100.0
 
     def set_params(self, p: ProcessingParams) -> None:
+        self.calib_from_meta.setChecked(p.calib_from_meta)
         self.el_offset.setValue(p.el_offset_deg)
+        self.beam_skew.setValue(p.beam_skew_deg)
+        self.beam_wobble.setValue(p.beam_wobble_deg)
+        self.halfplane_split.setValue(p.halfplane_split_deg)
         self.block_start.setValue(p.filters.block_start_deg)
         self.block_end.setValue(p.filters.block_end_deg)
         self.min_dist.setValue(p.filters.min_dist_m)
@@ -155,6 +178,10 @@ class ParamsPanel(QWidget):
     def params(self) -> ProcessingParams:
         return ProcessingParams(
             el_offset_deg=self.el_offset.value(),
+            beam_skew_deg=self.beam_skew.value(),
+            beam_wobble_deg=self.beam_wobble.value(),
+            halfplane_split_deg=self.halfplane_split.value(),
+            calib_from_meta=self.calib_from_meta.isChecked(),
             filters=FilterParams(
                 block_start_deg=self.block_start.value(),
                 block_end_deg=self.block_end.value(),

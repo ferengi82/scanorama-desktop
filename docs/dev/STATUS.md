@@ -1,5 +1,20 @@
 # Arbeitsstand Scanorama Studio
 
+## 2026-07-04 (abends) — v0.1.5: Strahlkalibrierung (Naht-Fehler gelöst)
+
+- Ursache der Naht (erste/letzte Messung eines 180°-Scans weichen cm ab):
+  der STL27L-Strahl liegt nicht exakt in der Rotorebene. Vier Winkel
+  (el_offset, beam_skew, beam_wobble, halfplane_split) beschreiben es;
+  Motor/Mechanik nachweislich exakt (Kamera-Null-Test 0,02°).
+- `core/transform.py`: volles Strahlmodell (`LidarCalibration`,
+  `beam_directions`); Pipeline nimmt Kalibrierung automatisch aus der
+  meta.json des Scans (`resolve_calibration`, Schalter+Felder im Panel)
+- Neu `core/calibrate.py` + CLI `calibrate <360°-Scan> [--write]`:
+  Zwei-Lagen-Fit per Pattern-Search, Naht 38,8 → 2,9 mm (echte Scans,
+  3× kreuzvalidiert)
+- v0.1.4: Fusions-Voxel einstellbar (Panel, Default 1 cm), Versionsnummer
+  im Release-ZIP-Namen
+
 ## 2026-07-04 — Windows-Debugging (v0.1.1–v0.1.3)
 
 - v0.1.1: EXE-Startfix (editable Install für PyInstaller unsichtbar →

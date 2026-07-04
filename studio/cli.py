@@ -25,6 +25,10 @@ log = logging.getLogger("studio")
 def cmd_process(args: argparse.Namespace) -> int:
     params = ProcessingParams(
         el_offset_deg=args.el_offset,
+        beam_skew_deg=args.beam_skew,
+        beam_wobble_deg=args.beam_wobble,
+        halfplane_split_deg=args.halfplane_split,
+        calib_from_meta=not args.no_meta_calib,
         filters=FilterParams(
             block_start_deg=args.block_start,
             block_end_deg=args.block_end,
@@ -50,6 +54,38 @@ def cmd_process(args: argparse.Namespace) -> int:
     return rc
 
 
+def cmd_calibrate(args: argparse.Namespace) -> int:
+    import json
+    from datetime import date
+
+    from .core.calibrate import CalibrationError, fit_calibration
+
+    try:
+        result = fit_calibration(args.scan_dir, subsample=args.subsample)
+    except CalibrationError as e:
+        log.error(str(e))
+        return 1
+    c = result.calibration
+    print(f"Naht (median |Δr|): {result.seam_before_mm:.1f} mm → "
+          f"{result.seam_after_mm:.1f} mm  "
+          f"({result.bins} Bins, {result.evaluations} Auswertungen)")
+    payload = {**c.to_dict(),
+               "fitted": date.today().isoformat(),
+               "source": Path(args.scan_dir).name,
+               "seam_before_mm": round(result.seam_before_mm, 1),
+               "seam_after_mm": round(result.seam_after_mm, 1)}
+    text = json.dumps(payload, indent=2, ensure_ascii=False)
+    print(text)
+    if args.write:
+        out = Path(args.write)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(text + "\n", encoding="utf-8")
+        print(f"→ {out}")
+        print("Auf dem Pi ablegen als ~/.config/scanorama/calibration.json — "
+              "dann trägt der Scanner die Werte in jede meta.json ein.")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="scanorama-studio-cli",
@@ -72,7 +108,16 @@ def build_parser() -> argparse.ArgumentParser:
                    help="Exportformate")
     g = p.add_argument_group("Verarbeitung")
     g.add_argument("--el-offset", type=float, default=0.0,
-                   help="Elevations-Offset-Kalibrierung in Grad")
+                   help="Elevations-Offset in Grad (wenn keine "
+                        "Kalibrierung in der meta.json)")
+    g.add_argument("--beam-skew", type=float, default=0.0,
+                   help="Strahl-Skew in Grad (siehe calibrate)")
+    g.add_argument("--beam-wobble", type=float, default=0.0,
+                   help="Strahl-Wobble in Grad (siehe calibrate)")
+    g.add_argument("--halfplane-split", type=float, default=0.0,
+                   help="Halbebenen-Versatz in Grad (siehe calibrate)")
+    g.add_argument("--no-meta-calib", action="store_true",
+                   help="Kalibrierung aus der meta.json ignorieren")
     g.add_argument("--block-start", type=float, default=165.0,
                    help="Stativ-Bereich Anfang (Elevation, 0°=oben)")
     g.add_argument("--block-end", type=float, default=195.0,
@@ -86,6 +131,20 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--force-decode", action="store_true",
                    help="points.npz aus den Rohdaten neu berechnen")
     p.set_defaults(func=cmd_process)
+
+    p = sub.add_parser(
+        "calibrate",
+        help="Strahlkalibrierung aus einem 360°-Scan bestimmen "
+             "(Zwei-Lagen-Analyse)",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    p.add_argument("scan_dir", metavar="SCAN_ORDNER",
+                   help="Ein voller 360°-Scan (scanorama scan --az-end 360)")
+    p.add_argument("--write", metavar="DATEI",
+                   help="Ergebnis als calibration.json schreiben "
+                        "(für ~/.config/scanorama/ auf dem Pi)")
+    p.add_argument("--subsample", type=int, default=3,
+                   help="Nur jeden n-ten Punkt verwenden (Tempo)")
+    p.set_defaults(func=cmd_calibrate)
 
     return parser
 
