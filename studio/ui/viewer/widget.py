@@ -32,6 +32,7 @@ log = logging.getLogger(__name__)
 
 GL_POINTS = 0x0000
 GL_LINES = 0x0001
+GL_SCISSOR_TEST = 0x0C11
 GL_DEPTH_TEST = 0x0B71
 GL_PROGRAM_POINT_SIZE = 0x8642
 GL_COLOR_BUFFER_BIT = 0x4000
@@ -62,7 +63,7 @@ out vec3 v_col;
 out vec3 v_world;
 void main() {
     gl_Position = mvp * vec4(pos, 1.0);
-    gl_PointSize = point_size;
+    gl_PointSize = max(point_size, 1.0);
     v_col = col;
     v_world = pos;
 }
@@ -373,6 +374,11 @@ class PointCloudGLWidget(QOpenGLWidget):
 
     def _paint(self) -> None:
         f = self.context().functions()
+        # Defensiv: Qt kann auf Windows/HiDPI einen veralteten Scissor-
+        # Ausschnitt hinterlassen — dann landet kein Fragment im Bild.
+        f.glDisable(GL_SCISSOR_TEST)
+        dpr = self.devicePixelRatioF()
+        f.glViewport(0, 0, int(self.width() * dpr), int(self.height() * dpr))
         f.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         if not self._gl_ready or self._positions is None:
             return
@@ -392,8 +398,8 @@ class PointCloudGLWidget(QOpenGLWidget):
         p.bind()
         p.setUniformValue(p.uniformLocation("mvp"),
                           QMatrix4x4(*mvp.flatten().tolist()))
-        p.setUniformValue(p.uniformLocation("point_size"),
-                          float(self.point_size))
+        p.setUniformValue1f(p.uniformLocation("point_size"),
+                            float(self.point_size))
         p.setUniformValue1i(p.uniformLocation("round_points"), 1)
         p.setUniformValue1i(p.uniformLocation("use_uniform_color"), 0)
 
@@ -418,8 +424,8 @@ class PointCloudGLWidget(QOpenGLWidget):
             p.setUniformValue1i(p.uniformLocation("use_uniform_color"), 1)
             p.setUniformValue(p.uniformLocation("uniform_color"),
                               1.0, 0.62, 0.05)   # orange
-            p.setUniformValue(p.uniformLocation("point_size"),
-                              float(self.point_size) + 8.0)
+            p.setUniformValue1f(p.uniformLocation("point_size"),
+                                float(self.point_size) + 8.0)
             self._vao_overlay.bind()
             m = len(self._overlay)
             f.glDrawArrays(GL_POINTS, 0, m)

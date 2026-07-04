@@ -61,13 +61,13 @@ jobs:
       - name: EXE bauen
         run: pyinstaller scanorama-studio.spec --noconfirm
       - name: Paket zippen
-        run: Compress-Archive -Path dist/ScanoramaStudio -DestinationPath ScanoramaStudio-windows.zip
+        run: Compress-Archive -Path dist/ScanoramaStudio -DestinationPath ScanoramaStudio-${{ github.ref_name }}-windows.zip
       - uses: actions/upload-artifact@v4
         with:
           name: ScanoramaStudio-windows
-          path: ScanoramaStudio-windows.zip
+          path: ScanoramaStudio-*-windows.zip
       - name: Release anhängen (nur Tags)
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: ScanoramaStudio-windows.zip
+          files: ScanoramaStudio-*-windows.zip
