@@ -555,16 +555,24 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage(
             self.tr("Exportiere %d Fotos nach %s …") % (n_photos, out))
 
-        def on_result(csv_path):
+        def on_result(psx_path):
             QMessageBox.information(
                 self, APP_NAME,
                 self.tr("Metashape-Export fertig:\n%s\n\n%d Fotos aus %d "
-                        "Standpunkten — Anleitung liegt als ANLEITUNG.md "
-                        "dabei.") % (csv_path.parent, n_photos,
+                        "Standpunkten — Projektdatei und Anleitung liegen "
+                        "dabei.") % (psx_path, n_photos,
                                      len(stations_data)))
 
-        self.workers.start(photos.export_metashape, stations_data, out,
-                           on_result=on_result,
+        project_name = self.project.name or "scanorama"
+
+        def job():
+            from ..core import msproject
+            photos.export_metashape(stations_data, out)
+            return msproject.write_psx(out.parent, project_name,
+                                       stations_data,
+                                       photo_subdir=out.name)
+
+        self.workers.start(job, on_result=on_result,
                            on_error=lambda m: QMessageBox.critical(
                                self, APP_NAME, m))
 

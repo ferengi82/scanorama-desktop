@@ -174,3 +174,24 @@ def test_upright_dreht_roll_weg():
             assert (w, h) == (2448, 3264)      # Portrait
         else:
             assert (w, h) == (3264, 2448)
+
+
+def test_write_psx(tmp_path):
+    from studio.core.msproject import write_psx
+    import zipfile
+
+    scan, meta = _fake_scan(tmp_path)
+    poses = load_station_photos(scan, meta, label_prefix="s1")
+    out = tmp_path / "output"
+    export_metashape([("s1", poses, None)], out / "metashape")
+    psx = write_psx(out, "testprojekt", [("s1", poses, None)])
+    assert psx.is_file()
+    assert "{projectname}.files" in psx.read_text(encoding="utf-8")
+    with zipfile.ZipFile(out / "testprojekt.files" / "0" / "chunk.zip") as z:
+        doc = z.read("doc.xml").decode("utf-8")
+    assert doc.count("<camera id=") == 4
+    assert '<sensor id="0" label="usb0"' in doc
+    assert 'rotation_enabled="false"' in doc
+    with zipfile.ZipFile(out / "testprojekt.files" / "0" / "0" / "frame.zip") as z:
+        fdoc = z.read("doc.xml").decode("utf-8")
+    assert "../../../metashape/s1_photo_00_az000_usb0.jpg" in fdoc
