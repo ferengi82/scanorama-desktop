@@ -1,5 +1,29 @@
 # Arbeitsstand Scanorama Studio
 
+## 2026-07-05 (nachmittags) — Metashape-Winkelfix + Foto-Overlay-Prüfer
+
+- User-Befund nach v0.1.6: Fotos 90° verdreht, Metashape-Wolke kippt.
+  Drei Ursachen behoben:
+  1. **Metashape-Export → Omega/Phi/Kappa** statt Yaw/Pitch/Roll (die
+     YPR-Konvention war mit Roll±90 nie validiert). OPK-Konvention
+     datengetrieben aus 108 (Winkel,Matrix)-Paaren der User-cameras.txt:
+     R_file = (Rx(ω)Ry(φ)Rz(κ))ᵀ, MS-Kameraachsen via Q=[[-1,0,0],[0,0,1],
+     [0,1,0]] (matrix_to_opk in photos.py, 108/108 exakt).
+     WICHTIG in Metashape: Reference-Settings → Rotation „Omega Phi Kappa".
+  2. **Fotos werden beim Export aufrecht gedreht** (Hochkant-Einbau),
+     Drehung in Pose eingefaltet (Roll≈0), Portrait-Kalibrierung je
+     Kamera (calibration_usbN.xml), Pixel-Konsistenz numerisch bewiesen.
+  3. **Veraltete Mounts in meta.json** (Scans vor der cameras.json-
+     Installation, alle roll=0) werden in der Pipeline automatisch durch
+     die aktuellen Gerätewerte ersetzt (legacy.refresh_stale_mounts) —
+     das war die „90°-Verdrehung" in der Studio-Einfärbung des Users.
+- **Neues Werkzeug Foto-Overlay-Prüfer** (Menü Fotos): Foto ⇄ Wolken-
+  Render überblendet, Live-Regler az/pitch/roll, Auto-Fit (1/alle Fotos),
+  Übernehmen als project.camera_mounts-Override, cameras.json-Export
+  für den Pi. Core: studio/core/overlay.py.
+- 103 Tests grün; Export am Referenzscan regeneriert (108 OPK-Zeilen,
+  Portrait-JPEGs). Release v0.1.7 nach User-Test.
+
 ## 2026-07-05 (mittags) — Alt-Scan-Entspiegelung
 
 - `core/legacy.py` + Pipeline-Schalter `unmirror_legacy` (Default an):

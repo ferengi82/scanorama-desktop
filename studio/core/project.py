@@ -60,6 +60,7 @@ class Project:
     stations: list[Station] = field(default_factory=list)
     created: str = ""
     fusion_voxel_m: float = 0.01     # Kantenlänge der Fusions-Voxel (1 cm)
+    camera_mounts: dict | None = None  # Mount-Override (Foto-Overlay-Prüfer)
 
     # ------------------------------------------------------------------
     # Anlegen / Öffnen / Speichern
@@ -101,6 +102,7 @@ class Project:
             stations=[Station(**s) for s in data.get("stations", [])],
             created=data.get("created", ""),
             fusion_voxel_m=data.get("fusion_voxel_m", 0.01),
+            camera_mounts=data.get("camera_mounts"),
         )
         # Verwaiste Einträge melden (Scan-Ordner von Hand gelöscht?)
         for s in project.stations:
@@ -116,6 +118,7 @@ class Project:
             "name": self.name,
             "created": self.created,
             "fusion_voxel_m": self.fusion_voxel_m,
+            "camera_mounts": self.camera_mounts,
             "params": self.params.to_dict(),
             "stations": [
                 {"folder": s.folder, "enabled": s.enabled, "pose": s.pose}

@@ -97,7 +97,8 @@ class ProcessingResult:
 
 def process_scan(scan_dir: str | Path,
                  params: ProcessingParams | None = None,
-                 force_decode: bool = False) -> ProcessingResult:
+                 force_decode: bool = False,
+                 mounts_override: dict | None = None) -> ProcessingResult:
     """Verarbeitet einen Scan-Ordner vollständig.
 
     Schritte: Laden → Stativ-/Nahbereichsfilter (polar) →
@@ -120,6 +121,8 @@ def process_scan(scan_dir: str | Path,
         report["legacy_mirrored"] = True
         log.info("Alt-Scan (invert_dir=false) — entspiegelt "
                  "(Azimut negiert, Kalibrierung/Fotos angepasst)")
+    # Zwischenstands-Scans: neue Drehrichtung, aber alte Mount-Werte
+    legacy.refresh_stale_mounts(raw.meta)
 
     raw, raw_report = filters.filter_raw(raw, params.filters)
     report["raw_filter"] = raw_report
@@ -144,7 +147,8 @@ def process_scan(scan_dir: str | Path,
 
     if params.colorize_photos:
         from . import colorize, photos
-        poses = photos.load_station_photos(raw.path, raw.meta)
+        poses = photos.load_station_photos(raw.path, raw.meta,
+                                           mounts_override=mounts_override)
         if poses:
             cloud.rgb, n_colored = colorize.colorize_cloud(cloud, poses,
                                                            floor_T)

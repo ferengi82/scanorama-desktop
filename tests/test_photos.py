@@ -84,10 +84,11 @@ def _fake_scan(tmp_path, name="2026-07-04_scan_03_001", n=4):
     scan = tmp_path / name
     (scan / "photos").mkdir(parents=True)
     photos = []
+    from PIL import Image
     for i in range(n):
         az = i * 90.0
         fn = f"photos/photo_{i:02d}_az{int(az):03d}_usb0.jpg"
-        (scan / fn).write_bytes(b"\xff\xd8\xff\xd9")  # Mini-"JPEG"
+        Image.new("RGB", (32, 24), (10 * i, 0, 0)).save(scan / fn, "JPEG")
         photos.append({"file": fn, "cam_id": "usb0", "index": i,
                        "azimuth_deg": az, "t_ns": 0})
     meta = {"photos": photos, "cameras": {"mounts": {"usb0": MOUNT}}}
@@ -115,13 +116,14 @@ def test_export_metashape(tmp_path):
     csv_path = export_metashape([("s1", poses, T)], out)
 
     lines = csv_path.read_text(encoding="utf-8").splitlines()
+    assert "Omega,Phi,Kappa" in lines[3]
     data = [l for l in lines if not l.startswith("#") and not l.startswith("Label")]
     assert len(data) == 4
     first = data[0].split(",")
     assert first[0] == "s1_photo_00_az000_usb0.jpg"
     assert float(first[1]) == pytest.approx(10.0, abs=1e-6)   # verschoben
     assert (out / "s1_photo_00_az000_usb0.jpg").is_file()      # Kopie da
-    assert (out / "calibration.xml").is_file()
+    assert (out / "calibration_usb0.xml").is_file()
     assert (out / "ANLEITUNG.md").is_file()
 
 
@@ -136,3 +138,39 @@ def test_export_metashape_doppelte_labels(tmp_path):
 def test_export_metashape_ohne_fotos(tmp_path):
     with pytest.raises(ValueError, match="Keine Fotos"):
         export_metashape([("leer", [], None)], tmp_path / "out")
+
+
+def test_opk_roundtrip_gegen_metashape():
+    """Echte Zeilen aus einem Metashape-Export (cameras.txt, 2026-07-05)."""
+    from studio.core.photos import _MS_Q, matrix_to_opk, opk_to_matrix
+
+    rows = [
+        ((-153.3132106687801866, 3.1741457413604381, 174.5568290715151534),
+         [-0.9939635431176939, -0.0599979371816321, -0.0918516330114469,
+          -0.0947128905333766, 0.8918050050708231, 0.4423949607505065,
+          0.0553709609789573, 0.4484239963077113, -0.8921042406668005]),
+        ((84.0980383968535108, 16.2136692387017902, 18.7984972825116188),
+         [0.9090063880783839, 0.2960597709964952, 0.2933530269661340,
+          -0.3094244127522786, 0.0078423641617082, 0.9508917026229974,
+          0.2792201984556241, -0.9551372201531348, 0.0987368799007945]),
+    ]
+    for opk, flat in rows:
+        Rf = np.array(flat).reshape(3, 3)
+        M = Rf.T @ _MS_Q.T
+        got = matrix_to_opk(M)
+        assert np.abs((np.array(got) - opk + 180) % 360 - 180).max() < 1e-3
+        np.testing.assert_allclose(opk_to_matrix(*got), M, atol=1e-9)
+
+
+def test_upright_dreht_roll_weg():
+    from studio.core.photos import _rotated_calibration, _upright
+
+    for roll in (90.48, -88.56, 0.0):
+        p = _pose(yaw=30.0, pitch=10.0, roll=roll)
+        neu, img_rot = _upright(p)
+        assert abs(neu.roll) < 45
+        w, h, _, _ = _rotated_calibration(img_rot)
+        if img_rot in (90, 270):
+            assert (w, h) == (2448, 3264)      # Portrait
+        else:
+            assert (w, h) == (3264, 2448)

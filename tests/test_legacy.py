@@ -80,3 +80,13 @@ def test_pipeline_entspiegelt(tmp_path, monkeypatch):
     x1 = result.cloud.xyz[:, 0]
     x2 = result2.cloud.xyz[:, 0]
     assert np.mean(x1) < 0 < np.mean(x2)
+
+
+def test_refresh_stale_mounts():
+    meta = _meta(True)      # neue Richtung, aber Roll=0 (veraltet)
+    assert legacy.refresh_stale_mounts(meta) is True
+    m = meta["cameras"]["mounts"]["usb0"]
+    assert abs(m["roll_mount_deg"]) > 80
+    assert m["device"] == "/dev/v4l/x"
+    # bereits kalibriert (Roll ±90) → unangetastet
+    assert legacy.refresh_stale_mounts(meta) is False

@@ -134,179 +134,189 @@
         <translation>Export photo poses for &amp;Metashape…</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="175"/>
+        <location filename="../mainwindow.py" line="173"/>
+        <source>Foto-&amp;Overlay prüfen…</source>
+        <translation>Check photo &amp;overlay…</translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.py" line="178"/>
         <source>&amp;Beenden</source>
         <translation>&amp;Quit</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="180"/>
+        <location filename="../mainwindow.py" line="183"/>
         <source>&amp;Einstellungen</source>
         <translation>&amp;Settings</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="181"/>
+        <location filename="../mainwindow.py" line="184"/>
         <source>&amp;Sprache / Language</source>
         <translation>&amp;Language / Sprache</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="194"/>
+        <location filename="../mainwindow.py" line="197"/>
         <source>Die Sprache wird beim nächsten Start übernommen.</source>
         <translation>The language takes effect on the next start.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="197"/>
+        <location filename="../mainwindow.py" line="200"/>
         <source>&amp;Hilfe</source>
         <translation>&amp;Help</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="198"/>
+        <location filename="../mainwindow.py" line="201"/>
         <source>&amp;Viewer-Diagnose</source>
         <translation>&amp;Viewer diagnosis</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="202"/>
+        <location filename="../mainwindow.py" line="205"/>
         <source>Software-Rendering umschalten</source>
         <translation>Toggle software rendering</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="208"/>
+        <location filename="../mainwindow.py" line="211"/>
         <source>Viewer-Diagnose</source>
         <translation>Viewer diagnosis</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="216"/>
+        <location filename="../mainwindow.py" line="219"/>
         <source>Rendering-Modus: %s — wird beim nächsten Start übernommen.</source>
         <translation>Rendering mode: %s — takes effect on the next start.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="242"/>
+        <location filename="../mainwindow.py" line="246"/>
         <source>Ordner für das neue Projekt wählen</source>
         <translation>Choose a folder for the new project</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="246"/>
+        <location filename="../mainwindow.py" line="250"/>
         <source>Neues Projekt</source>
         <translation>New project</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="247"/>
+        <location filename="../mainwindow.py" line="251"/>
         <source>Projektname:</source>
         <translation>Project name:</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="266"/>
+        <location filename="../mainwindow.py" line="270"/>
         <source>Projektordner öffnen</source>
         <translation>Open project folder</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="287"/>
+        <location filename="../mainwindow.py" line="291"/>
         <source>Projekt geladen: %s (%d Standpunkte)</source>
         <translation>Project loaded: %s (%d stations)</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="295"/>
+        <location filename="../mainwindow.py" line="299"/>
         <source>Ordner mit Scan-Ordnern wählen (Stick/Netzwerk)</source>
         <translation>Choose a folder containing scan folders (stick/network)</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="304"/>
+        <location filename="../mainwindow.py" line="308"/>
         <source>Keine Scan-Ordner gefunden in:
 %s</source>
         <translation>No scan folders found in:
 %s</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="315"/>
+        <location filename="../mainwindow.py" line="319"/>
         <source>%d Scan(s) importiert</source>
         <translation>%d scan(s) imported</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="336"/>
+        <location filename="../mainwindow.py" line="340"/>
         <source>%d Scan(s) vom Gerät geholt</source>
         <translation>%d scan(s) fetched from device</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="344"/>
+        <location filename="../mainwindow.py" line="348"/>
         <source>Standpunkt „%s“ aus dem Projekt entfernen?
 (Dateien im Projektordner werden gelöscht)</source>
         <translation>Remove station “%s” from the project?
 (Files in the project folder will be deleted)</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="374"/>
+        <location filename="../mainwindow.py" line="378"/>
         <source>verarbeite…</source>
         <translation>processing…</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="375"/>
+        <location filename="../mainwindow.py" line="379"/>
         <source>Verarbeite %s …</source>
         <translation>Processing %s …</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="380"/>
-        <location filename="../mainwindow.py" line="457"/>
+        <location filename="../mainwindow.py" line="384"/>
+        <location filename="../mainwindow.py" line="463"/>
         <source>%d Punkte</source>
         <translation>%d points</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="386"/>
+        <location filename="../mainwindow.py" line="390"/>
         <source>Fehler</source>
         <translation>Error</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="395"/>
+        <location filename="../mainwindow.py" line="400"/>
         <source>Boden→Z=0</source>
         <translation>floor→Z=0</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="396"/>
+        <location filename="../mainwindow.py" line="401"/>
         <source>kein Bodenfit</source>
         <translation>no floor fit</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="399"/>
+        <location filename="../mainwindow.py" line="404"/>
         <source>Punkte</source>
         <translation>points</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="423"/>
+        <location filename="../mainwindow.py" line="428"/>
         <source>Mindestens zwei aktive Standpunkte nötig.</source>
         <translation>At least two active stations are required.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="433"/>
+        <location filename="../mainwindow.py" line="438"/>
         <source>Registriere %d Standpunkte …</source>
         <translation>Registering %d stations …</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="462"/>
+        <location filename="../mainwindow.py" line="468"/>
         <source>
 Schwächstes Paar: %d→%d (%s, Fitness %.2f)</source>
         <translation>
 Weakest pair: %d→%d (%s, fitness %.2f)</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="467"/>
+        <location filename="../mainwindow.py" line="473"/>
         <source>Registrierung abgeschlossen — Gesamtwolke: %d Punkte.</source>
         <translation>Registration finished — merged cloud: %d points.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="512"/>
+        <location filename="../mainwindow.py" line="495"/>
+        <source>Foto-Overlay nicht möglich: %s</source>
+        <translation>Photo overlay not possible: %s</translation>
+    </message>
+    <message>
+        <location filename="../mainwindow.py" line="540"/>
         <source>Kein Standpunkt hat eine Fotorunde (photos/ + meta.json).</source>
         <translation>No station has a photo round (photos/ + meta.json).</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="518"/>
+        <location filename="../mainwindow.py" line="546"/>
         <source>Hinweis: %s wurde(n) noch nicht verarbeitet — die Fotoposen werden ohne Bodenausrichtung exportiert. Für konsistente Posen erst verarbeiten (bzw. registrieren).</source>
         <translation>Note: %s has/have not been processed yet — photo poses are exported without floor alignment. For consistent poses, process (or register) first.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="527"/>
+        <location filename="../mainwindow.py" line="555"/>
         <source>Exportiere %d Fotos nach %s …</source>
         <translation>Exporting %d photos to %s …</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="532"/>
+        <location filename="../mainwindow.py" line="560"/>
         <source>Metashape-Export fertig:
 %s
 
@@ -317,44 +327,44 @@ Weakest pair: %d→%d (%s, fitness %.2f)</translation>
 %d photos from %d stations — instructions included as ANLEITUNG.md.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="551"/>
+        <location filename="../mainwindow.py" line="579"/>
         <source>Gesamtwolke: %d Punkte aus %d Standpunkten</source>
         <translation>Merged cloud: %d points from %d stations</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="558"/>
+        <location filename="../mainwindow.py" line="586"/>
         <source>Gesamtwolke exportieren</source>
         <translation>Export merged cloud</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="559"/>
-        <location filename="../mainwindow.py" line="608"/>
+        <location filename="../mainwindow.py" line="587"/>
+        <location filename="../mainwindow.py" line="636"/>
         <source>Format:</source>
         <translation>Format:</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="568"/>
-        <location filename="../mainwindow.py" line="619"/>
+        <location filename="../mainwindow.py" line="596"/>
+        <location filename="../mainwindow.py" line="647"/>
         <source>Exportiert: %s</source>
         <translation>Exported: %s</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="581"/>
+        <location filename="../mainwindow.py" line="609"/>
         <source>Erst registrieren — es gibt noch keine Posen.</source>
         <translation>Register first — there are no poses yet.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="591"/>
+        <location filename="../mainwindow.py" line="619"/>
         <source>E57 mit Posen exportiert: %s</source>
         <translation>E57 with poses exported: %s</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="604"/>
+        <location filename="../mainwindow.py" line="632"/>
         <source>Bitte zuerst einen verarbeiteten Standpunkt wählen.</source>
         <translation>Please select a processed station first.</translation>
     </message>
     <message>
-        <location filename="../mainwindow.py" line="607"/>
+        <location filename="../mainwindow.py" line="635"/>
         <source>Exportieren</source>
         <translation>Export</translation>
     </message>
@@ -445,6 +455,91 @@ Weakest pair: %d→%d (%s, fitness %.2f)</translation>
         <location filename="../panels.py" line="153"/>
         <source>Änderungen wirken nach „Neu verarbeiten“ auf alle Standpunkte.</source>
         <translation>Changes take effect on all stations after “Reprocess”.</translation>
+    </message>
+</context>
+<context>
+    <name>PhotoOverlayDialog</name>
+    <message>
+        <location filename="../photo_overlay.py" line="38"/>
+        <source>Foto-Overlay prüfen — %s</source>
+        <translation>Check photo overlay — %s</translation>
+    </message>
+    <message>
+        <location filename="../photo_overlay.py" line="82"/>
+        <source>Blickrichtung (az_offset)</source>
+        <translation>Viewing direction (az_offset)</translation>
+    </message>
+    <message>
+        <location filename="../photo_overlay.py" line="84"/>
+        <source>Neigung (pitch)</source>
+        <translation>Tilt (pitch)</translation>
+    </message>
+    <message>
+        <location filename="../photo_overlay.py" line="85"/>
+        <source>Verdrehung (roll)</source>
+        <translation>Rotation (roll)</translation>
+    </message>
+    <message>
+        <location filename="../photo_overlay.py" line="87"/>
+        <source>Auto-Fit (dieses Foto)</source>
+        <translation>Auto-fit (this photo)</translation>
+    </message>
+    <message>
+        <location filename="../photo_overlay.py" line="88"/>
+        <source>Auto-Fit (alle Fotos der Kamera)</source>
+        <translation>Auto-fit (all photos of this camera)</translation>
+    </message>
+    <message>
+        <location filename="../photo_overlay.py" line="89"/>
+        <source>Übernehmen (Projekt)</source>
+        <translation>Apply (project)</translation>
+    </message>
+    <message>
+        <location filename="../photo_overlay.py" line="90"/>
+        <source>cameras.json exportieren…</source>
+        <translation>Export cameras.json…</translation>
+    </message>
+    <message>
+        <location filename="../photo_overlay.py" line="97"/>
+        <source>Kamera:</source>
+        <translation>Camera:</translation>
+    </message>
+    <message>
+        <location filename="../photo_overlay.py" line="99"/>
+        <source>Foto:</source>
+        <translation>Photo:</translation>
+    </message>
+    <message>
+        <location filename="../photo_overlay.py" line="101"/>
+        <source>Überblendung:</source>
+        <translation>Blend:</translation>
+    </message>
+    <message>
+        <location filename="../photo_overlay.py" line="183"/>
+        <source>Foto %s | Azimut %.1f° | Deckungs-Score %.3f</source>
+        <translation>Photo %s | azimuth %.1f° | alignment score %.3f</translation>
+    </message>
+    <message>
+        <location filename="../photo_overlay.py" line="210"/>
+        <source>  — Auto-Fit: %.3f → %.3f</source>
+        <translation>  — auto-fit: %.3f → %.3f</translation>
+    </message>
+    <message>
+        <location filename="../photo_overlay.py" line="224"/>
+        <source>Mount für %s im Projekt gespeichert — wirkt beim nächsten „Neu verarbeiten“ und im Metashape-Export.</source>
+        <translation>Mount for %s saved in the project — takes effect on the next “Reprocess” and in the Metashape export.</translation>
+    </message>
+    <message>
+        <location filename="../photo_overlay.py" line="230"/>
+        <source>cameras.json exportieren</source>
+        <translation>Export cameras.json</translation>
+    </message>
+    <message>
+        <location filename="../photo_overlay.py" line="245"/>
+        <source>Gespeichert: %s
+Auf dem Pi ablegen als ~/.config/scanorama/cameras.json.</source>
+        <translation>Saved: %s
+Place on the Pi as ~/.config/scanorama/cameras.json.</translation>
     </message>
 </context>
 <context>

@@ -170,6 +170,9 @@ class MainWindow(QMainWindow):
             self.tr("Fotoposen für &Metashape exportieren…"), self)
         self.act_metashape.triggered.connect(self._export_metashape_photos)
         m_photos.addAction(self.act_metashape)
+        self.act_overlay = QAction(self.tr("Foto-&Overlay prüfen…"), self)
+        self.act_overlay.triggered.connect(self._open_photo_overlay)
+        m_photos.addAction(self.act_overlay)
 
         m_project.addSeparator()
         act = QAction(self.tr("&Beenden"), self)
@@ -233,6 +236,7 @@ class MainWindow(QMainWindow):
             has_project and any(s.pose is not None for s in self.project.stations))
         self.act_metashape.setEnabled(
             has_project and bool(self.project.stations))
+        self.act_overlay.setEnabled(has_project and bool(self._results))
 
     # ------------------------------------------------------------------
     # Projekt-Verwaltung
@@ -387,6 +391,7 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, APP_NAME, message)
 
         self.workers.start(process_scan, scan_dir, params,
+                           mounts_override=self.project.camera_mounts,
                            on_result=on_result, on_error=on_error)
 
     def _display_result(self, folder: str) -> None:
@@ -439,7 +444,8 @@ class MainWindow(QMainWindow):
                     results[s.folder] = cached[s.folder]
                 else:
                     results[s.folder] = process_scan(
-                        project.station_path(s), params)
+                        project.station_path(s), params,
+                        mounts_override=project.camera_mounts)
             clouds = [results[f].cloud for f in folders]
             reg = register_stations(clouds, RegistrationParams())
             fused = fusion.fuse(clouds, reg.poses, voxel_size_m=voxel)
@@ -472,6 +478,24 @@ class MainWindow(QMainWindow):
                            on_error=lambda m: QMessageBox.critical(
                                self, APP_NAME, m))
 
+    def _open_photo_overlay(self) -> None:
+        """Foto-Overlay-Prüfer für den gewählten (verarbeiteten) Standpunkt."""
+        if self.project is None or not self._results:
+            return
+        folder = self.project_panel.current_folder()
+        if folder not in self._results:
+            folder = next(iter(self._results))
+        try:
+            from .photo_overlay import PhotoOverlayDialog
+            dlg = PhotoOverlayDialog(self.project, folder,
+                                     self._results[folder], self)
+        except Exception as e:
+            QMessageBox.information(
+                self, APP_NAME,
+                self.tr("Foto-Overlay nicht möglich: %s") % e)
+            return
+        dlg.exec()
+
     def _export_metashape_photos(self) -> None:
         """Fotoposen aller Standpunkte → output/metashape/ (CSV + Kopien)."""
         if self.project is None:
@@ -493,8 +517,10 @@ class MainWindow(QMainWindow):
             from ..core import legacy
             if legacy.is_mirrored(meta):
                 meta = legacy.unmirror_meta(meta)
-            poses = photos.load_station_photos(scan_dir, meta,
-                                               label_prefix=s.folder)
+            legacy.refresh_stale_mounts(meta)
+            poses = photos.load_station_photos(
+                scan_dir, meta, label_prefix=s.folder,
+                mounts_override=self.project.camera_mounts)
             if not poses:
                 continue
             # Gesamt-Transformation: Registrierung ∘ Bodenfit
