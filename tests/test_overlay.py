@@ -61,6 +61,21 @@ def test_overlay_score_bevorzugt_wahrheit():
     assert gut > falsch
 
 
+@pytest.mark.parametrize("scale", [8, 16])
+def test_overlay_score_beliebige_fotoaufloesung(scale):
+    """Foto in Sensor/scale-Auflösung darf keinen Broadcast-Fehler werfen.
+
+    Regression: Der Prüfer reicht das Anzeige-Foto (Sensor/8) an
+    overlay_score, das aber fest mit Sensor/16 renderte →
+    „operands could not be broadcast together (152,203) (305,407)".
+    """
+    cloud = _szene()
+    w, h = SENSOR_W_PX // scale, SENSOR_H_PX // scale
+    foto = np.zeros((h, w), np.float64)      # wie _render (scale 8) / _autofit (16)
+    s = overlay_score(cloud, MOUNT, 0.0, foto, None)
+    assert np.isfinite(s)
+
+
 def test_project_camera_mounts_roundtrip(tmp_path):
     from studio.core.project import Project
 

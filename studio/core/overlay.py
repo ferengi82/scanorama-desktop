@@ -58,9 +58,15 @@ def _norm_grad(img: np.ndarray) -> np.ndarray:
 
 
 def overlay_score(cloud: PointCloud, mount: dict, azimuth_deg: float,
-                  photo_gray: np.ndarray, floor_T: np.ndarray | None,
-                  scale: int = 16) -> float:
-    """Gradienten-Korrelation Render↔Foto (höher = besser ausgerichtet)."""
+                  photo_gray: np.ndarray, floor_T: np.ndarray | None) -> float:
+    """Gradienten-Korrelation Render↔Foto (höher = besser ausgerichtet).
+
+    Die Render-Auflösung wird aus dem übergebenen Foto abgeleitet, damit
+    Anzeige-Fotos (Sensor/8) und Auto-Fit-Fotos (Sensor/16) gleichermaßen
+    passen — sonst kollidieren die Gradienten-Shapes beim Verrechnen.
+    """
+    from .photos import SENSOR_W_PX
+    scale = max(1, round(SENSOR_W_PX / photo_gray.shape[1]))
     pose = pose_from_mount(mount, azimuth_deg)
     r = _norm_grad(render_from_pose(cloud, pose, floor_T, scale))
     return float(np.mean(r * _norm_grad(photo_gray)))
