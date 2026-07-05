@@ -1,5 +1,18 @@
 # Arbeitsstand Scanorama Studio
 
+## 2026-07-05 (mittags) — Alt-Scan-Entspiegelung
+
+- `core/legacy.py` + Pipeline-Schalter `unmirror_legacy` (Default an):
+  Scans mit invert_dir=false werden beim Verarbeiten automatisch
+  entspiegelt — Azimut negiert, Strahlkalibrierungs-Vorzeichen aus der
+  Alt-meta.json gespiegelt, Foto-Azimute negiert, veraltete Mounts
+  durch die aktuellen Gerätewerte ersetzt (scanorama-Paket).
+  Metashape-Export nutzt denselben Pfad. Report-Flag `legacy_mirrored`.
+- Validiert am echten Alt-Scan 2026-07-04_scan_05_001: entspiegelt +
+  78,5 % eingefärbt, Panorama sauber. Achtung: bestehende Projekt-Posen
+  von Alt-Scans wurden auf gespiegelten Wolken gerechnet → nach dem
+  Update einmal neu registrieren (Strg+R).
+
 ## 2026-07-05 — Kamera-Mounts GELÖST + gemessene Intrinsics
 
 - Rätsel der „falschen" Mounts aufgeklärt: Module hochkant (roll ±90°),
