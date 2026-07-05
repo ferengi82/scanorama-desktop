@@ -5,9 +5,12 @@ import pytest
 from PIL import Image
 
 from studio.core.cloud import PointCloud
-from studio.core.colorize import colorize_cloud
+from studio.core.colorize import (ZBUF_DOWNSCALE, _blend, _estimate_gains,
+                                  _feather_weight, _linear_to_srgb,
+                                  _occlusion_mask, _srgb_to_linear,
+                                  colorize_cloud)
 from studio.core.export import load_ply, save_ply
-from studio.core.photos import PhotoPose
+from studio.core.photos import PhotoPose, SENSOR_H_PX, SENSOR_W_PX
 
 
 def _photo(tmp_path, name: str, color: tuple, **pose_kw) -> PhotoPose:
@@ -100,6 +103,116 @@ def test_las_mit_rgb(tmp_path):
     las = laspy.read(str(path))
     assert las.header.point_format.id == 2
     assert int(las.red[0]) == 255 * 257
+
+
+# --- (a/b/c) Helfer für Angleich, Blend, Verdeckung ----------------------
+
+def test_srgb_linear_roundtrip():
+    c = np.array([0.0, 0.04, 0.2, 0.5, 0.8, 1.0])
+    back = _linear_to_srgb(_srgb_to_linear(c))
+    np.testing.assert_allclose(back, c, atol=1e-6)
+    # Mittelgrau sRGB 0.5 wird in Linearlicht deutlich dunkler
+    assert _srgb_to_linear(np.array([0.5]))[0] == pytest.approx(0.214, abs=0.01)
+    assert _srgb_to_linear(np.array([0.0]))[0] == 0.0
+
+
+def test_feather_weight_mitte_max_rand_null():
+    cx, cy = SENSOR_W_PX / 2, SENSOR_H_PX / 2
+    u = np.array([cx, cx, 0.0, cx])
+    v = np.array([cy, cy - cy / 2, cy, 0.0])   # Mitte, halbhoch, li-Rand, o-Rand
+    w = _feather_weight(u, v)
+    assert w[0] == pytest.approx(1.0)           # Bildmitte → 1
+    assert w[2] == pytest.approx(0.0)           # linker Rand → 0
+    assert w[3] == pytest.approx(0.0)           # oberer Rand → 0
+    assert 0.0 < w[1] < 1.0                      # dazwischen, monoton fallend
+    assert w[1] > _feather_weight(np.array([cx]), np.array([cy / 4]))[0]
+
+
+def test_occlusion_mask_gleiche_zelle_hinten_verdeckt():
+    cx, cy = SENSOR_W_PX / 2, SENSOR_H_PX / 2
+    u = np.array([cx, cx, cx])
+    v = np.array([cy, cy, cy])
+    depth = np.array([1.0, 1.05, 3.0])          # 2 nah (in Toleranz), 1 fern
+    m = _occlusion_mask(u, v, depth)
+    assert m[0] and m[1]                         # innerhalb 10 cm sichtbar
+    assert not m[2]                              # 2 m dahinter → verdeckt
+
+
+def test_occlusion_mask_splat_schliesst_nachbarloch():
+    """Vordergrundpunkt verdeckt Hintergrund in NACHBARzelle (Splat 3×3)."""
+    cx, cy = SENSOR_W_PX / 2, SENSOR_H_PX / 2
+    u = np.array([cx, cx + ZBUF_DOWNSCALE])      # eine Zelle daneben
+    v = np.array([cy, cy])
+    depth = np.array([1.0, 3.0])                 # vorne, hinten
+    m = _occlusion_mask(u, v, depth)
+    assert m[0]
+    assert not m[1]                              # per Splat verdeckt
+
+
+def test_estimate_gains_gleicht_helligkeit_an():
+    n = 300
+    cam0 = np.zeros((n, 3)); cam0[:] = 0.4       # dunklere Kamera
+    cam1 = np.zeros((n, 3)); cam1[:] = 0.6       # 1,5× hellere Kamera
+    w = np.ones(n)                                # voller Overlap
+    gains = _estimate_gains([cam0, cam1], [w, w])
+    # angeglichene Helligkeit: g0·0.4 ≈ g1·0.6
+    np.testing.assert_allclose(gains[0] * 0.4, gains[1] * 0.6, atol=0.01)
+    assert gains[0, 0] / gains[1, 0] == pytest.approx(1.5, abs=0.05)
+
+
+def test_estimate_gains_ohne_overlap_bleibt_eins():
+    n = 100
+    cam0 = np.full((n, 3), 0.4); cam1 = np.full((n, 3), 0.6)
+    w0 = np.zeros(n); w0[:50] = 1.0              # Kamera 0 sieht nur vordere
+    w1 = np.zeros(n); w1[50:] = 1.0              # Kamera 1 nur hintere → kein Overlap
+    gains = _estimate_gains([cam0, cam1], [w0, w1])
+    np.testing.assert_allclose(gains, 1.0, atol=1e-9)
+
+
+def test_blend_gewichtet_und_fallback():
+    cam0 = np.array([[0.2, 0.2, 0.2]]); cam1 = np.array([[0.8, 0.8, 0.8]])
+    gains = np.ones((2, 3))
+    # gleiche Gewichte → linearer Mittelwert 0.5
+    rgb, colored = _blend([cam0, cam1], [np.array([1.0]), np.array([1.0])], gains)
+    assert colored[0]
+    assert rgb[0, 0] == pytest.approx(round(_linear_to_srgb(np.array([0.5]))[0] * 255),
+                                      abs=1)
+    # kein Treffer (Gewicht 0) → nicht eingefärbt
+    _, colored2 = _blend([cam0], [np.array([0.0])], np.ones((1, 3)))
+    assert not colored2[0]
+
+
+def test_kameranaht_wird_durch_gain_geschlossen(tmp_path):
+    """Zwei Kameras mit Helligkeits-Offset, teils überlappend.
+
+    Ohne Angleich klafft an der Grenze eine Naht (140 ↔ 190). Der
+    Overlap-Gain-Ausgleich muss die nur-links (Cam0) und nur-rechts (Cam1)
+    eingefärbten Bereiche einander angleichen.
+    """
+    def cam(name, color, yaw, cam_id):
+        path = tmp_path / name
+        Image.new("RGB", (SENSOR_W_PX // 8, SENSOR_H_PX // 8), color).save(
+            path, "JPEG", quality=95)
+        return PhotoPose(label=name, source=path, cam_id=cam_id,
+                         azimuth_deg=0.0, x=0.0, y=0.0, z=0.0,
+                         yaw=yaw, pitch=0.0, roll=0.0)
+
+    cam0 = cam("c0.jpg", (140, 140, 140), -25.0, "usb0")
+    cam1 = cam("c1.jpg", (190, 190, 190), +25.0, "usb1")
+    xs = np.linspace(-1.0, 1.0, 400)
+    cloud = _cloud(np.column_stack([xs, np.full(xs.size, 3.0),
+                                    np.zeros(xs.size)]))
+    rgb, n_col = colorize_cloud(cloud, [cam0, cam1])
+    assert n_col > 200
+
+    # Randbereiche, die nur je eine Kamera sieht
+    links = rgb[xs < -0.6][:, 0].astype(float)
+    rechts = rgb[xs > 0.6][:, 0].astype(float)
+    assert len(links) > 20 and len(rechts) > 20
+    # Naht geschlossen: mittlere Helligkeit beider Seiten ähnlich
+    assert abs(links.mean() - rechts.mean()) < 20        # roh wären es ~50
+    # ... und die Angleichung liegt zwischen den Rohwerten (nicht unverändert)
+    assert 140 < links.mean() < 190 or 140 < rechts.mean() < 190
 
 
 def test_fusion_mittelt_rgb():
