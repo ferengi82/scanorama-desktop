@@ -1,5 +1,23 @@
 # Arbeitsstand Scanorama Studio
 
+## 2026-07-05 — Kamera-Mounts GELÖST + gemessene Intrinsics
+
+- Rätsel der „falschen" Mounts aufgeklärt: Module hochkant (roll ±90°),
+  andere Pitches als v1 — bestimmt aus Metashape-Rotationen (108 Fotos)
+  + Azimut-Fit gegen die Wolke. Werte leben im Scanner-Repo
+  (CALIBRATED_MOUNTS + cameras.json auf dem Pi); Studio-Code unverändert
+  korrekt (yaw=az+az_offset — Achtung: eigene Test-Harnesse mit
+  Spiegel-Konventionen führten hier zweimal in die Irre; der Produktpfad
+  colorize_cloud war der verlässliche Test).
+- `photos.py`: FOCAL_PX=2548.876, CX/CY-Hauptpunkt aus Metashape-
+  Selbstkalibrierung (ersetzt 3,5-mm-Annahme); calibration.xml-Export
+  trägt die gemessenen Werte.
+- Nebenbei entdeckt (Scanner-Repo `8a2f79f`): Scans vor invert_dir=true
+  waren spiegelverkehrt zur Realität. Alt-Scans ggf. im Studio spiegeln
+  (offener Punkt).
+- Verifiziert: colorize auf 2026-07-05_scan_01_001 → 77,7 % Punkte,
+  Panorama sauber. Naht mit gespiegelter Strahlkalibrierung 3,7 mm.
+
 ## 2026-07-04 (nachts) — Fotoverarbeitung: Metashape-Export + Einfärbung
 
 - `core/photos.py`: Fotoposen aus meta.json (POSE_RECIPE), Kompass-Yaw-

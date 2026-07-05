@@ -25,8 +25,8 @@ from pathlib import Path
 import numpy as np
 
 from .cloud import PointCloud
-from .photos import (FOCAL_PX, SENSOR_H_PX, SENSOR_W_PX, PhotoPose,
-                     yaw_pitch_roll_to_matrix)
+from .photos import (CX_PX, CY_PX, FOCAL_PX, SENSOR_H_PX, SENSOR_W_PX,
+                     PhotoPose, yaw_pitch_roll_to_matrix)
 
 log = logging.getLogger(__name__)
 
@@ -69,8 +69,8 @@ def _project(xyz: np.ndarray, pose: PhotoPose,
     x, y, z = p[:, 0], p[:, 1], p[:, 2]           # y = Blickrichtung
 
     with np.errstate(divide="ignore", invalid="ignore"):
-        u = SENSOR_W_PX / 2 + FOCAL_PX * x / y
-        v = SENSOR_H_PX / 2 - FOCAL_PX * z / y
+        u = CX_PX + FOCAL_PX * x / y
+        v = CY_PX - FOCAL_PX * z / y
     valid = ((y > MIN_DEPTH_M)
              & (u >= 0) & (u < SENSOR_W_PX)
              & (v >= 0) & (v < SENSOR_H_PX))

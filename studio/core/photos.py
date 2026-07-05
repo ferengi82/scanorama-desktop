@@ -41,12 +41,15 @@ import numpy as np
 
 log = logging.getLogger(__name__)
 
-# Sonix GXI-IMX179 USB-Modul (Sony IMX179, 8 MP)
+# Sonix GXI-IMX179 USB-Modul (Sony IMX179, 8 MP).
+# f/cx/cy aus Metashape-Selbstkalibrierung des Aufbaus (2026-07-04,
+# 108 Fotos aligned) — ersetzt die alte 3,5-mm-Datenblatt-Annahme.
 SENSOR_W_PX = 3264
 SENSOR_H_PX = 2448
 PIXEL_UM = 1.4
-FOCAL_MM = 3.5                                   # M12-Standardobjektiv
-FOCAL_PX = FOCAL_MM / (PIXEL_UM / 1000.0)        # ≈ 2500 px
+FOCAL_PX = 2548.876
+CX_PX = SENSOR_W_PX / 2 - 19.096                 # Hauptpunkt
+CY_PX = SENSOR_H_PX / 2 + 100.349
 
 
 @dataclass
@@ -181,8 +184,8 @@ CALIB_TEMPLATE = """<?xml version="1.0" encoding="UTF-8"?>
   <width>{width}</width>
   <height>{height}</height>
   <f>{f_px:.4f}</f>
-  <cx>0</cx>
-  <cy>0</cy>
+  <cx>{cx:.4f}</cx>
+  <cy>{cy:.4f}</cy>
   <k1>0</k1>
   <k2>0</k2>
   <k3>0</k3>
@@ -251,7 +254,10 @@ def export_metashape(stations: list[tuple[str, list[PhotoPose], np.ndarray | Non
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     (out_dir / "calibration.xml").write_text(
         CALIB_TEMPLATE.format(width=SENSOR_W_PX, height=SENSOR_H_PX,
-                              f_px=FOCAL_PX, date=now), encoding="utf-8")
+                              f_px=FOCAL_PX,
+                              cx=CX_PX - SENSOR_W_PX / 2,
+                              cy=CY_PX - SENSOR_H_PX / 2,
+                              date=now), encoding="utf-8")
     (out_dir / "ANLEITUNG.md").write_text(
         ANLEITUNG_MD.format(n_photos=len(rows), n_stations=len(stations),
                             date=now), encoding="utf-8")
