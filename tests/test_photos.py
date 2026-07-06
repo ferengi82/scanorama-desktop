@@ -191,7 +191,11 @@ def test_write_psx(tmp_path):
         doc = z.read("doc.xml").decode("utf-8")
     assert doc.count("<camera id=") == 4
     assert '<sensor id="0" label="usb0"' in doc
-    assert 'rotation_enabled="false"' in doc
+    # Fotos eines Standpunkts liegen in einer Station-Gruppe …
+    assert '<group id="0" label="s1" type="station">' in doc
+    # … und die Referenz trägt jetzt Orientierung (rotation_enabled).
+    assert 'rotation_enabled="true"' in doc
+    assert " yaw=" in doc and " pitch=" in doc and " roll=" in doc
     with zipfile.ZipFile(out / "testprojekt.files" / "0" / "0" / "frame.zip") as z:
         fdoc = z.read("doc.xml").decode("utf-8")
     assert "../../../metashape/s1_photo_00_az000_usb0.jpg" in fdoc
