@@ -515,8 +515,6 @@ class MainWindow(QMainWindow):
                 continue
             meta = json.loads(meta_path.read_text(encoding="utf-8"))
             from ..core import legacy
-            if legacy.is_mirrored(meta):
-                meta = legacy.unmirror_meta(meta)
             legacy.refresh_stale_mounts(meta)
             poses = photos.load_station_photos(
                 scan_dir, meta, label_prefix=s.folder,

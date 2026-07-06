@@ -1,5 +1,25 @@
 # Arbeitsstand Scanorama Studio
 
+## 2026-07-06 — Alt-Scan-Entspiegelung zurückgenommen (war falschherum)
+
+- User-Befund: Raum-Scans gespiegelt (Bett auf falscher Raumseite). Ursache
+  war die am 2026-07-05 eingeführte Azimut-„Entspiegelung" (`unmirror_legacy`,
+  Default an) — sie negierte bei **jedem** `invert_dir=false`-Scan den Azimut.
+  Da sämtliche echten Daten `invert_dir=false` sind, spiegelte der Default
+  faktisch jede Wolke. Die damalige Foto-/Metashape-Begründung trug nicht:
+  Drehrichtung betrifft nur die Koordinaten, und Spiegel+Spiegel ist in sich
+  konsistent (der Raum-Augenschein ist die härtere Grundwahrheit).
+- **Entfernt:** `legacy.is_mirrored`/`unmirror_meta`, Pipeline-Param
+  `unmirror_legacy`, `report["legacy_mirrored"]` sowie die Aufrufe in
+  mainwindow.py/photo_overlay.py. `legacy.refresh_stale_mounts` (Mount-
+  Reparatur für die Einfärbung) bleibt unverändert. `invert_dir=false`-Scans
+  werden wieder in der ursprünglichen, korrekten Konvention (pre-v0.1.6)
+  ausgewertet.
+- Verifiziert: `2026-07-03_scan_01_001` — X-Achse der Pipeline jetzt
+  vorzeichengleich mit der rohen `polar_to_cartesian`-Umrechnung (nicht mehr
+  gespiegelt). 110 Tests grün. **Achtung:** unter der gespiegelten Version
+  gerechnete Projekt-Posen einmal neu registrieren (Strg+R).
+
 ## 2026-07-05 (nachmittags) — Metashape-Winkelfix + Foto-Overlay-Prüfer
 
 - User-Befund nach v0.1.6: Fotos 90° verdreht, Metashape-Wolke kippt.

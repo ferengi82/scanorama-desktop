@@ -42,7 +42,6 @@ class ProcessingParams:
     align_floor: bool = True
     floor_threshold_m: float = 0.02
     colorize_photos: bool = True     # Punkte aus der Fotorunde einfärben
-    unmirror_legacy: bool = True     # Alt-Scans (invert_dir=false) entspiegeln
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -60,7 +59,6 @@ class ProcessingParams:
             align_floor=d.get("align_floor", True),
             floor_threshold_m=d.get("floor_threshold_m", 0.02),
             colorize_photos=d.get("colorize_photos", True),
-            unmirror_legacy=d.get("unmirror_legacy", True),
         )
 
     def calibration(self) -> transform.LidarCalibration:
@@ -112,16 +110,7 @@ def process_scan(scan_dir: str | Path,
     raw = rawscan.load_scan(scan_dir, force_decode=force_decode)
     report["scan_name"] = raw.name
 
-    # Alt-Scans (invert_dir=false) sind spiegelverkehrt zur Realität →
-    # Azimut negieren und die meta-Blöcke mitspiegeln (siehe legacy.py)
-    report["legacy_mirrored"] = False
-    if params.unmirror_legacy and legacy.is_mirrored(raw.meta):
-        raw.azimuth_deg = -raw.azimuth_deg
-        raw.meta = legacy.unmirror_meta(raw.meta)
-        report["legacy_mirrored"] = True
-        log.info("Alt-Scan (invert_dir=false) — entspiegelt "
-                 "(Azimut negiert, Kalibrierung/Fotos angepasst)")
-    # Zwischenstands-Scans: neue Drehrichtung, aber alte Mount-Werte
+    # Veraltete Kamera-Mounts (roll=0) durch aktuelle Gerätewerte ersetzen
     legacy.refresh_stale_mounts(raw.meta)
 
     raw, raw_report = filters.filter_raw(raw, params.filters)

@@ -47,8 +47,6 @@ class PhotoOverlayDialog(QDialog):
 
         scan_dir = project.station_path(project.get_station(station_folder))
         meta = json.loads((scan_dir / "meta.json").read_text(encoding="utf-8"))
-        if legacy.is_mirrored(meta):
-            meta = legacy.unmirror_meta(meta)
         legacy.refresh_stale_mounts(meta)
         self.mounts = dict((meta.get("cameras") or {}).get("mounts") or {})
         if project.camera_mounts:
